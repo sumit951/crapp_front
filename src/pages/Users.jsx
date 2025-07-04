@@ -40,7 +40,8 @@ function Users() {
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
     { name: 'Name', selector: row => row.name, sortable: true},
-    { name: 'Email', selector: row => row.email, sortable: true},
+    { name: 'Email', selector: row => row.email, sortable: true, width: '300px'},
+    { name: 'Phone', selector: row => row.phone, sortable: true},
     {
       name: 'Status',
       cell: row => (

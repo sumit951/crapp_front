@@ -2,9 +2,10 @@
 import axios from 'axios';
 import { set, get, del, clear, keys } from 'idb-keyval';
 // Next we make an 'instance' of it
-export const BASE_URL = 'http://localhost:5000';
-//export const BASE_URL = 'https://loop-chatapp.onrender.com';
-export const FILE_PATH = 'http://localhost/crapp/uploads';
+//export const BASE_URL = 'http://localhost:5000';
+export const BASE_URL = 'https://crapp-backend.onrender.com';
+//export const FILE_PATH = 'http://localhost/crapp/uploads';
+export const FILE_PATH = 'https://360emarketz.com/sumit/crapp/uploads/';
 const instance = axios.create({
 // .. where we make our configurations
     baseURL: BASE_URL
