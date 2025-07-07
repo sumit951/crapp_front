@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import axiosConfig, { BASE_URL, FILE_PATH } from '../axiosConfig';
+import axiosConfig, { BASE_URL, FILE_PATH, FILE_UPLOAD_URL } from '../axiosConfig';
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
@@ -125,7 +125,7 @@ function Services() {
 
       formData.append('files[]', icon);
 
-      const response = await axiosConfig.post(`http://localhost/crapp/upload_crapp_file.php`, formData, {
+      const response = await axiosConfig.post(`${FILE_UPLOAD_URL}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       //console.log(response);

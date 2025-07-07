@@ -5,6 +5,7 @@ import { set, get, del, clear, keys } from 'idb-keyval';
 //export const BASE_URL = 'http://localhost:5000';
 export const BASE_URL = 'https://crapp-backend.onrender.com';
 //export const FILE_PATH = 'http://localhost/crapp/uploads';
+export const FILE_UPLOAD_URL = 'https://phdassistant.com/crapp/upload_crapp_file.php';
 export const FILE_PATH = 'https://phdassistant.com/crapp/uploads';
 const instance = axios.create({
 // .. where we make our configurations
