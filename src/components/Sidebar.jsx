@@ -20,6 +20,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             <nav className="flex-1 p-4 space-y-4">
             <Link to="/" className="block hover:underline">Dashboard</Link>
             <Link to="/services" className="block hover:underline">Services</Link>
+            <Link to="/packages" className="block hover:underline">Packages</Link>
+            <Link to="/users" className="block hover:underline">Users</Link>
             <button
                 onClick={logout}
                 data-tooltip-id="my-tooltip"

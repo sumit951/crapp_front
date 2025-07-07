@@ -25,7 +25,6 @@ function Services() {
   const [MainId, setMainId] = useState('');
   
   
-  //console.log(alluserdata);
   const fetchService = async (parentId,title) => {
       try {
         let response = '';
@@ -114,10 +113,16 @@ function Services() {
     //console.log(icon);
     
     let filesStr = '';
-    if (icon.name)
+    if (icon)
     {
+      
+      
       const formData = new FormData();
-      formData.append('oldFile', editingService.icon);
+      if(editingService)
+      {
+        formData.append('oldFile', editingService.icon);
+      }
+
       formData.append('files[]', icon);
 
       const response = await axiosConfig.post(`http://localhost/crapp/upload_crapp_file.php`, formData, {
@@ -155,6 +160,11 @@ function Services() {
         createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
       };
 
+      if(editingService.icon!='' && filesStr=='')
+      {
+        newService.icon  = editingService.icon;
+      }
+
       try {
           const response = await axiosConfig.put(`/api/service/update/${editingService.id}`, newService)
           //console.log(response);
@@ -169,6 +179,10 @@ function Services() {
               icon:filesStr,
               createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
             };
+            if(editingService.icon!='' && filesStr=='')
+            {
+              newService.icon  = editingService.icon;
+            }
             console.log(newService);
             
             setServices(prev => prev.map(s => s.id === editingService.id ? newService : s));
@@ -324,29 +338,8 @@ function Services() {
               {editingService ? "Edit Service" : "Add Service"}
             </h2>
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium">Service Name</label>
-                <input
-                  type="text"
-                  name="title"
-                  defaultValue={editingService?.title || ''}
-                  required
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                />
-              </div>
-              {MainId ? 
-                <div>
-                <label className="block text-sm font-medium">Service Icon</label>
-                <input
-                  type="file"
-                  name="icon"
-                  onChange={(e) => setIcon(e.target.files[0])}
-                  accept="image/*"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                />
-              </div>
-               : null
-              }
+              
+              
 
               {editingService ? <div>
                 <label className="block text-sm font-medium">Status</label>
@@ -361,14 +354,14 @@ function Services() {
               </div>
                : 
               <div>
-                <label className="block text-sm font-medium">Parent Service (optional)</label>
+                <label className="block text-sm font-medium">Parent Service</label>
                 <select
                   name="parentId"
                   defaultValue={editingService?.parentId || ''}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                   onChange={(e) => setMainId(e.target.value)}
                 >
-                  <option value="">None (Main Service)</option>
+                  <option value="">Add New Main Service</option>
                   {mainServices.map(main => (
                     <option key={main.id} value={main.id}>
                       {main.title}
@@ -378,7 +371,30 @@ function Services() {
               </div>
               }
 
-              
+              {MainId ? 
+                <div>
+                <label className="block text-sm font-medium">Service Icon</label>
+                <input
+                  type="file"
+                  name="icon"
+                  onChange={(e) => setIcon(e.target.files[0])}
+                  accept="image/*"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+               : null
+              }
+
+              <div>
+                <label className="block text-sm font-medium">Service Name</label>
+                <input
+                  type="text"
+                  name="title"
+                  defaultValue={editingService?.title || ''}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
               
 
               <div className="flex justify-end gap-3 pt-4">

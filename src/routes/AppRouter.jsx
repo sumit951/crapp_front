@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Services from "../pages/Services";
+import Packages from "../pages/Packages";
 import Users from "../pages/Users";
 
 
@@ -25,6 +26,7 @@ export default function AppRouter() {
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/packages" element={<Packages />} />
             <Route path="/users" element={<Users />} />
           </Route>
         </Route>
