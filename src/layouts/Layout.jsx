@@ -34,7 +34,7 @@ export default function Layout() {
           </div>
         </main>
 
-        <footer className="border-t border-[#092e4650] bg-white text-[#092e46] px-4 py-3 flex items-center justify-center">
+        <footer className="border-t border-[#ddd] bg-[#fff] text-[#092e46] px-4 py-3 flex items-center justify-center">
           <p className="text-sm">
             © {new Date().getFullYear()} All Rights Reserved by Chanakya Research, 2011-2025
           </p>

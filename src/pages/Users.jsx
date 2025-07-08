@@ -56,9 +56,9 @@ function Users() {
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-6 table_header_user">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-[#092e46]">Manage Users</h1>
+        <h1 className="text-xl font-semibold text-[#000]">Manage Users</h1>
         <div className="flex gap-3">
           <input
             type="text"

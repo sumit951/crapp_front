@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosConfig, { BASE_URL, FILE_PATH, FILE_UPLOAD_URL } from '../axiosConfig';
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
@@ -23,31 +23,29 @@ function Services() {
   const [ParentId, setParentId] = useState('');
   const [ParentTitle, setParentTitle] = useState('');
   const [MainId, setMainId] = useState('');
-  
-  
-  const fetchService = async (parentId,title) => {
-      try {
-        let response = '';
-        if(parentId)
-        {
-          setParentId(parentId)
-          setParentTitle(title)
-          response  = await axiosConfig.get(`/api/service/all/${parentId}`);
-        }
-        else
-        {
-          setParentId('')
-          setParentTitle('')
-          response = await axiosConfig.get('/api/service/all');
-        }
-        
-        if (response.status === 200) {
-          setServices(response.data.data);
-        }
-      } catch (error) {
-        toast.error(error.message);
+
+
+  const fetchService = async (parentId, title) => {
+    try {
+      let response = '';
+      if (parentId) {
+        setParentId(parentId)
+        setParentTitle(title)
+        response = await axiosConfig.get(`/api/service/sub/${parentId}`);
       }
-    };
+      else {
+        setParentId('')
+        setParentTitle('')
+        response = await axiosConfig.get('/api/service/main');
+      }
+
+      if (response.status === 200) {
+        setServices(response.data.data);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
   useEffect(() => {
     fetchService();
   }, []);
@@ -59,19 +57,16 @@ function Services() {
   const handleDelete = async (id) => {
     const isConfirmed = window.confirm('Are you sure you want to delete this service?');
 
-    if (isConfirmed && id)
-    {
+    if (isConfirmed && id) {
       try {
         const response = await axiosConfig.delete(`/api/service/delete/${id}`)
         //console.log(response);
-        
-        if(response.status==200)
-        {
+
+        if (response.status == 200) {
           setServices(prev => prev.filter(service => service.id !== id));
-          toast.success(response.data.message); 
+          toast.success(response.data.message);
         }
-        else
-        {
+        else {
           toast.success(response.data.message);
         }
       } catch (error) {
@@ -85,18 +80,16 @@ function Services() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-    
+
     }
   };
 
   const handleOpenModal = (service = null) => {
     setEditingService(service);
-    if(service!=null)
-    {
+    if (service != null) {
       setMainId(service.parentId);
     }
-    else
-    {
+    else {
       setMainId('');
     }
     setModalOpen(true);
@@ -111,15 +104,13 @@ function Services() {
     e.preventDefault();
     const form = e.target;
     //console.log(icon);
-    
+
     let filesStr = '';
-    if (icon)
-    {
-      
-      
+    if (icon) {
+
+
       const formData = new FormData();
-      if(editingService)
-      {
+      if (editingService) {
         formData.append('oldFile', editingService.icon);
       }
 
@@ -129,8 +120,8 @@ function Services() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       //console.log(response);
-      
-      
+
+
       //console.log(response.data['files']);
 
       response.data['files'].forEach((file) => {
@@ -156,42 +147,38 @@ function Services() {
         title: form.title.value.trim(),
         status: form.status.value,
         // parentId: form.parentId.value || null,
-        icon:filesStr,
+        icon: filesStr,
         createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
       };
 
-      if(editingService.icon!='' && filesStr=='')
-      {
-        newService.icon  = editingService.icon;
+      if (editingService.icon != '' && filesStr == '') {
+        newService.icon = editingService.icon;
       }
 
       try {
-          const response = await axiosConfig.put(`/api/service/update/${editingService.id}`, newService)
-          //console.log(response);
-          
-          if(response.status==200)
-          {
-            const newService = {
-              id: editingService.id,
-              title: form.title.value,
-              status: form.status.value,
-              parentId: ParentId,
-              icon:filesStr,
-              createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
-            };
-            if(editingService.icon!='' && filesStr=='')
-            {
-              newService.icon  = editingService.icon;
-            }
-            console.log(newService);
-            
-            setServices(prev => prev.map(s => s.id === editingService.id ? newService : s));
-            toast.success(response.data.message); 
+        const response = await axiosConfig.put(`/api/service/update/${editingService.id}`, newService)
+        //console.log(response);
+
+        if (response.status == 200) {
+          const newService = {
+            id: editingService.id,
+            title: form.title.value,
+            status: form.status.value,
+            parentId: ParentId,
+            icon: filesStr,
+            createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
+          };
+          if (editingService.icon != '' && filesStr == '') {
+            newService.icon = editingService.icon;
           }
-          else
-          {
-            toast.success(response.data.message);
-          }
+          console.log(newService);
+
+          setServices(prev => prev.map(s => s.id === editingService.id ? newService : s));
+          toast.success(response.data.message);
+        }
+        else {
+          toast.success(response.data.message);
+        }
       } catch (error) {
         // Handle known server response
         if (error.response && error.response.data && error.response.data.message) {
@@ -203,34 +190,32 @@ function Services() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-      
+
     } else {
       const value = {
         title: form.title.value.trim(),
         parentId: form.parentId.value.trim() || null,
-        icon:filesStr
+        icon: filesStr
       };
       try {
-          const response = await axiosConfig.post('/api/service/add', value)
-          //console.log(response);
-          
-          if(response.status==200 && response.data.insertId)
-          {
-            const newService = {
-              id: response.data.insertId,
-              title: form.title.value,
-              status: 'Active',
-              parentId: form.parentId.value || null,
-              icon:filesStr,
-              createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
-            };
-            setServices(prev => [...prev, newService]);
-            toast.success(response.data.message); 
-          }
-          else
-          {
-            toast.success(response.data.message);
-          }
+        const response = await axiosConfig.post('/api/service/add', value)
+        //console.log(response);
+
+        if (response.status == 200 && response.data.insertId) {
+          const newService = {
+            id: response.data.insertId,
+            title: form.title.value,
+            status: 'Active',
+            parentId: form.parentId.value || null,
+            icon: filesStr,
+            createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
+          };
+          setServices(prev => [...prev, newService]);
+          toast.success(response.data.message);
+        }
+        else {
+          toast.success(response.data.message);
+        }
       } catch (error) {
         // Handle known server response
         if (error.response && error.response.data && error.response.data.message) {
@@ -242,7 +227,7 @@ function Services() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-      
+
     }
     setMainId('')
     handleCloseModal();
@@ -252,7 +237,8 @@ function Services() {
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
-    { name: 'Service Name', selector: row => row.title, sortable: true,
+    {
+      name: 'Service Name', selector: row => row.title, sortable: true,
       cell: row => (
         <div className="flex items-center">
           {/* Check if there is an image */}
@@ -266,9 +252,8 @@ function Services() {
     {
       name: 'Status',
       cell: row => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`}>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+          }`}>
           {row.status}
         </span>
       ),
@@ -286,27 +271,27 @@ function Services() {
       name: 'Actions',
       cell: row => (
         <div>
-          
-          <button className="text-blue-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Service'} onClick={() => handleOpenModal(row)}><Pencil size={20} /></button>
-          <button className="text-red-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Service'} onClick={() => handleDelete(row.id)}><Trash size={20} /></button>
-          {!row.parentId ? (<button className="text-orange-600 hover:underline text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'View Sub Service'} onClick={() => fetchService(row.id,row.title)}><Eye size={20} /></button>) : null}
+
+          <button className="text-blue-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Service'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-red-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Service'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          {!row.parentId ? (<button className="text-orange-600 hover:underline text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'View Sub Service'} onClick={() => fetchService(row.id, row.title)}><Eye size={15} /></button>) : null}
         </div>
       ),
     },
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-6 table_header_services">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-[#092e46]">{ParentId ? (`${ParentTitle} - Sub Services`) : 'Main Services'} </h1>
+        <h1 className="text-xl font-semibold text-[#000]">{ParentId ? (`${ParentTitle} - Sub Services`) : 'Main Services'} </h1>
         <div className="flex gap-3">
-          {ParentId ? (<button class="bg-[#092e46] text-white px-4 py-1.5 rounded text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'View Main Service'} onClick={() => fetchService()}><ArrowLeft size={20} /></button>) : <button
+          {ParentId ? (<button class="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'View Main Service'} onClick={() => fetchService()}><ArrowLeft size={20} /></button>) : <button
             onClick={() => handleOpenModal()}
             data-tooltip-id="my-tooltip"
             data-tooltip-content={'Add Service'}
-            className="bg-[#092e46] text-white px-4 py-1.5 rounded text-sm"
-          >
-            <Plus size={20} />
+            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm"
+          >Add Service
+            {/* <Plus size={18} /> */}
           </button>}
           <input
             type="text"
@@ -315,9 +300,9 @@ function Services() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
-          
-          
-          
+
+
+
         </div>
       </div>
 
@@ -338,8 +323,8 @@ function Services() {
               {editingService ? "Edit Service" : "Add Service"}
             </h2>
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              
-              
+
+
 
               {editingService ? <div>
                 <label className="block text-sm font-medium">Status</label>
@@ -352,41 +337,41 @@ function Services() {
                   <option value="Inactive">Inactive</option>
                 </select>
               </div>
-               : 
-              <div>
-                <label className="block text-sm font-medium">Parent Service</label>
-                <select
-                  name="parentId"
-                  defaultValue={editingService?.parentId || ''}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  onChange={(e) => setMainId(e.target.value)}
-                >
-                  <option value="">Add New Main Service</option>
-                  {mainServices.map(main => (
-                    <option key={main.id} value={main.id}>
-                      {main.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              }
-
-              {MainId ? 
+                :
                 <div>
-                <label className="block text-sm font-medium">Service Icon</label>
-                <input
-                  type="file"
-                  name="icon"
-                  onChange={(e) => setIcon(e.target.files[0])}
-                  accept="image/*"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                />
-              </div>
-               : null
+                  <label className="block text-sm font-medium pb-1">Parent Service</label>
+                  <select
+                    name="parentId"
+                    defaultValue={editingService?.parentId || ''}
+                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm"
+                    onChange={(e) => setMainId(e.target.value)}
+                  >
+                    <option value="">Add New Main Service</option>
+                    {mainServices.map(main => (
+                      <option key={main.id} value={main.id}>
+                        {main.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              }
+
+              {MainId ?
+                <div>
+                  <label className="block text-sm font-medium pb-1">Service Icon</label>
+                  <input
+                    type="file"
+                    name="icon"
+                    onChange={(e) => setIcon(e.target.files[0])}
+                    accept="image/*"
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  />
+                </div>
+                : null
               }
 
               <div>
-                <label className="block text-sm font-medium">Service Name</label>
+                <label className="block text-sm font-medium pb-1">Service Name</label>
                 <input
                   type="text"
                   name="title"
@@ -395,19 +380,19 @@ function Services() {
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 />
               </div>
-              
+
 
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded"
+                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded"
                 >
                   {editingService ? 'Update' : 'Create'}
                 </button>
