@@ -41,8 +41,9 @@ function Users() {
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
     { name: 'First Name', selector: row => row.firstName, sortable: true},
     { name: 'Last Name', selector: row => row.lastName, sortable: true},
+    { name: 'Username', selector: row => row.userName, sortable: true},
     { name: 'Email', selector: row => row.email, sortable: true, width: '300px'},
-    { name: 'Phone', selector: row => row.mobile, sortable: true},
+    { name: 'Mobile', selector: row => row.mobile, sortable: true},
     {
       name: 'Status',
       cell: row => (

@@ -41,6 +41,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
           </Link>
 
           <Link 
+            to="/subjectareas"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white hover:text-[#f58737] transition
+              ${pathname.startsWith("/subjectareas") ? "bg-[#f58737] text-white font-semibold" : "text-black"}`}
+          >
+            <Settings size={18} />
+            Subject Areas
+          </Link>
+
+          <Link 
             to="/packages"
             className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white hover:text-[#f58737] transition
               ${pathname.startsWith("/packages") ? "bg-[#f58737] text-white font-semibold" : "text-black"}`}
