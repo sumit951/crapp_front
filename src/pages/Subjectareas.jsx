@@ -14,6 +14,7 @@ function Subjectareas() {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingsubjectarea, setEditingsubjectarea] = useState(null);
+  const [icon, setIcon] = useState(null);
 
   const fetchsubjectarea = async () => {
     try {
@@ -78,15 +79,47 @@ function Subjectareas() {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
+    //console.log(icon);
 
+    let filesStr = '';
+    if (icon) {
+
+
+      const formData = new FormData();
+      if (editingsubjectarea) {
+        formData.append('oldFile', editingsubjectarea.icon);
+      }
+
+      formData.append('files[]', icon);
+
+      const response = await axiosConfig.post(`${FILE_UPLOAD_URL}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      //console.log(response);
+
+
+      //console.log(response.data['files']);
+
+      response.data['files'].forEach((file) => {
+        filesStr += `${file.filename}||`
+      });
+
+      filesStr = filesStr.replace(/\|\|$/, ''); // Remove last ||
+
+    }
     if (editingsubjectarea) {
 
       const newsubjectarea = {
         id: editingsubjectarea?.id || Date.now(),
         title: form.title.value.trim(),
         status: form.status.value,
+        icon: filesStr,
         createdAt: editingsubjectarea?.createdAt || new Date().toISOString().split('T')[0],
       };
+
+      if (editingsubjectarea.icon != '' && filesStr == '') {
+        newsubjectarea.icon = editingsubjectarea.icon;
+      }
 
       try {
         const response = await axiosConfig.put(`/api/subjectarea/update/${editingsubjectarea.id}`, newsubjectarea)
@@ -97,8 +130,12 @@ function Subjectareas() {
             id: editingsubjectarea.id,
             title: form.title.value,
             status: form.status.value,
+            icon: filesStr,
             createdAt: editingsubjectarea?.createdAt || new Date().toISOString().split('T')[0],
           };
+          if (editingsubjectarea.icon != '' && filesStr == '') {
+            newsubjectarea.icon = editingsubjectarea.icon;
+          }
           //console.log(newsubjectarea);
 
           setSubjectareas(prev => prev.map(s => s.id === editingsubjectarea.id ? newsubjectarea : s));
@@ -122,6 +159,7 @@ function Subjectareas() {
     } else {
       const value = {
         title: form.title.value.trim(),
+        icon: filesStr
       };
       try {
         const response = await axiosConfig.post('/api/subjectarea/add', value)
@@ -132,6 +170,7 @@ function Subjectareas() {
             id: response.data.insertId,
             title: form.title.value,
             status: 'Active',
+            icon: filesStr,
             createdAt: editingsubjectarea?.createdAt || new Date().toISOString().split('T')[0],
           };
           setSubjectareas(prev => [...prev, newsubjectarea]);
@@ -159,7 +198,16 @@ function Subjectareas() {
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
     {
-      name: 'Title', selector: row => row.title, sortable: true
+      name: 'Title', selector: row => row.title, sortable: true,
+      cell: row => (
+        <div className="flex items-center">
+          {/* Check if there is an image */}
+          {row.icon ? (
+            <img src={`${FILE_PATH}/${row.icon}`} alt={row.title} className="w-10 rounded-full mr-2" />
+          ) : null}
+          <span>{row.title}</span>
+        </div>
+      )
     },
     {
       name: 'Status',
@@ -243,6 +291,17 @@ function Subjectareas() {
                   name="title"
                   defaultValue={editingsubjectarea?.title || ''}
                   required
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium pb-1">Icon</label>
+                <input
+                  type="file"
+                  name="icon"
+                  onChange={(e) => setIcon(e.target.files[0])}
+                  accept="image/*"
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 />
               </div>

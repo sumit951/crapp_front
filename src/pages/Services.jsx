@@ -9,11 +9,7 @@ import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
 
 
 function Services() {
-  // const initialServices = [
-  //   { id: 1, name: "Content Writing", status: "Active", createdAt: "2023-05-01", parentId: null },
-  //   { id: 2, name: "Proofreading", status: "Inactive", createdAt: "2023-06-12", parentId: 1 },
-  //   { id: 3, name: "Editing", status: "Active", createdAt: "2023-04-20", parentId: null },
-  // ];
+
   const [services, setServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -125,15 +121,6 @@ function Services() {
       //console.log(response.data['files']);
 
       response.data['files'].forEach((file) => {
-        let originalnameFilename = file.originalname;
-        if (originalnameFilename === 'image.png') {
-          originalnameFilename = `Screenshot_${file.filename}`;
-        }
-        // if (file.mimetype.startsWith("image/")) {
-        // 	filesStr += `<a key={${BASE_URL}/uploads/${file.filename}} href="${BASE_URL}/uploads/${file.filename}" rel="noopener noreferrer" target="_blank"><img src="${BASE_URL}/uploads/${file.filename}" style=" width: 150px" /> </a>||`
-        // } else {
-        // 	filesStr += `<a key={${BASE_URL}/uploads/${file.filename}} href="${BASE_URL}/uploads/${file.filename}" target="_blank" rel="noopener noreferrer">${originalnameFilename}</a>||`
-        // }
         filesStr += `${file.filename}||`
       });
 
