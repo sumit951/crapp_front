@@ -29,7 +29,7 @@ function Packages() {
       if (parentId) {
         setParentId(parentId)
         setParentTitle(title)
-        response = await axiosConfig.get(`/api/service/all/${parentId}`);
+        response = await axiosConfig.get(`/api/service/sub/${parentId}`);
         if (response.status === 200) {
           setSubServices(response.data.data);
         }
@@ -37,7 +37,7 @@ function Packages() {
       else {
         setParentId('')
         setParentTitle('')
-        response = await axiosConfig.get('/api/service/all');
+        response = await axiosConfig.get('/api/service/main');
         if (response.status === 200) {
           setMainServices(response.data.data);
         }
