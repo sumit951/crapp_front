@@ -158,7 +158,7 @@ function Users() {
     { name: 'First Name', selector: row => row.firstName, sortable: true},
     { name: 'Last Name', selector: row => row.lastName, sortable: true},
     { name: 'Username', selector: row => row.userName, sortable: true},
-    { name: 'Email', selector: row => row.email, sortable: true, width: '250px'},
+    { name: 'Email', selector: row => row.email, sortable: true, width: '280px'},
     { name: 'Mobile', selector: row => row.mobile, sortable: true},
     { name: 'Subject Area', selector: row => row.subjectArearTitle, sortable: true},
     {
