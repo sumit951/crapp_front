@@ -1,8 +1,9 @@
 import React from 'react'
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { LogOut, CircleUserRound, Bell, LayoutDashboard, Settings, Users, Package } from "lucide-react";
+import { LogOut, CircleUserRound, Bell, LayoutDashboard, Settings, Users, Package, ListStart, ListOrdered } from "lucide-react";
 import { useAuth } from "../utils/idb.jsx";
 import logo from '../assets/logo.png';
+import Orders from '../pages/Orders.jsx';
 
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const { user, logout } = useAuth();
@@ -65,6 +66,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
           >
             <Users size={18} />
             Users
+          </Link>
+
+          <Link 
+            to="/orders"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white hover:text-[#f58737] transition
+              ${pathname.startsWith("/orders") ? "bg-[#f58737] text-white font-semibold" : "text-black"}`}
+          >
+            <ListOrdered size={18} />
+            Orders
           </Link>
 
           {/* <button

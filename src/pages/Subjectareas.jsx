@@ -203,7 +203,7 @@ function Subjectareas() {
         <div className="flex items-center">
           {/* Check if there is an image */}
           {row.icon ? (
-            <img src={`${FILE_PATH}/${row.icon}`} alt={row.title} className="w-10 rounded-full mr-2" />
+            <img src={`${FILE_PATH}/uploads/${row.icon}`} alt={row.title} className="w-10 rounded-full mr-2" />
           ) : null}
           <span>{row.title}</span>
         </div>

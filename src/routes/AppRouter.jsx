@@ -11,6 +11,7 @@ import Services from "../pages/Services";
 import Packages from "../pages/Packages";
 import Users from "../pages/Users";
 import Subjectareas from "../pages/Subjectareas";
+import Orders from "../pages/Orders";
 
 
 
@@ -30,6 +31,7 @@ export default function AppRouter() {
             <Route path="/packages" element={<Packages />} />
             <Route path="/users" element={<Users />} />
             <Route path="/subjectareas" element={<Subjectareas />} />
+            <Route path="/orders" element={<Orders />} />
           </Route>
         </Route>
         
