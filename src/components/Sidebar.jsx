@@ -77,6 +77,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             Orders
           </Link>
 
+          <Link 
+            to="/companies"
+            className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white hover:text-[#f58737] transition
+              ${pathname.startsWith("/companies") ? "bg-[#f58737] text-white font-semibold" : "text-black"}`}
+          >
+            <ListOrdered size={18} />
+            Companies
+          </Link>
+
           {/* <button
             onClick={logout}
             className="flex items-center gap-3 px-3 py-2 rounded-md bg-white hover:bg-red-500 hover:text-white text-black transition"

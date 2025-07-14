@@ -273,10 +273,10 @@ function Packages() {
       cell: row => (
         <div>
 
-          <button className="text-blue-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Package'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Package'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
 
-          <button className="text-red-600 hover:underline text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Package'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
-            <button className="text-orange-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'View Package Informartion'} onClick={() => handleViewpackageModal(row)}><Eye size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Package'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+            <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'View Package Informartion'} onClick={() => handleViewpackageModal(row)}><Eye size={15} /></button>
 
         </div>
       ),

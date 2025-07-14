@@ -12,7 +12,8 @@ import Packages from "../pages/Packages";
 import Users from "../pages/Users";
 import Subjectareas from "../pages/Subjectareas";
 import Orders from "../pages/Orders";
-
+import Companies from "../pages/Companies";
+import Agreements from "../pages/Agreements";
 
 
 
@@ -32,6 +33,8 @@ export default function AppRouter() {
             <Route path="/users" element={<Users />} />
             <Route path="/subjectareas" element={<Subjectareas />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/companies" element={<Companies />} />
+            <Route path="/agreements" element={<Agreements />} />
           </Route>
         </Route>
         

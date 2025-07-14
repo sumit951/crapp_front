@@ -176,7 +176,7 @@ function Users() {
       name: 'Actions',
       cell: row => (
         <div>
-          <button className="text-blue-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
         </div>
       ),
     },

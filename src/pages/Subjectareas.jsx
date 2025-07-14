@@ -232,8 +232,8 @@ function Subjectareas() {
       cell: row => (
         <div>
 
-          <button className="text-blue-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Subject Area'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
-          <button className="text-red-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Subject Area'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Subject Area'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Subject Area'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
         </div>
       ),
     },
