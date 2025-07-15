@@ -4,11 +4,15 @@ import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import JoditEditor from 'jodit-react';
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Plus, Loader } from "lucide-react";
 
 
 function Agreements() {
-  
+
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const [loader, setLoader] = useState(false);
+
   const [companyAddress, setCompanyAddress] = useState('');
   const [serviceProvision, setServiceProvision] = useState('');
   const [termsAndCondition, setTermsAndCondition] = useState('');
@@ -226,6 +230,7 @@ function Agreements() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
   e.preventDefault();
   const form = e.target;
 
@@ -256,7 +261,7 @@ function Agreements() {
     const updatedAgreement = {
       ...formData,
       id: editingagreement.id,
-      createdAt: editingagreement.createdAt || new Date().toISOString().split('T')[0],
+      createdAt: editingagreement.createdAt || formattedDate,
     };
 
     try {
@@ -278,10 +283,11 @@ function Agreements() {
       }
       console.error(error);
     }
+    setLoader(false);
   } else {
     const newAgreement = {
       ...formData,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: formattedDate,
     };
 
     try {
@@ -289,8 +295,7 @@ function Agreements() {
 
       if (response.status === 200 && response.data.insertId) {
         setAgreements(prev => [
-          ...prev,
-          { ...newAgreement, id: response.data.insertId }
+          { ...newAgreement, id: response.data.insertId },...prev          
         ]);
         toast.success(response.data.message);
       } else {
@@ -304,6 +309,7 @@ function Agreements() {
       }
       console.error(error);
     }
+    setLoader(false);
   }
 
   handleCloseModal();
@@ -337,8 +343,8 @@ function Agreements() {
       name: 'Actions',
       cell: row => (
         <div>
-          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Agreement'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
-          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Agreement'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
         </div>
       ),
     },
@@ -353,7 +359,7 @@ function Agreements() {
             onClick={() => handleOpenModal()}
             data-tooltip-id="my-tooltip"
             data-tooltip-content={'Add agreement'}
-            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm"
+            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm cursor-pointer"
           >Add Agreement
             {/* <Plus size={18} /> */}
           </button>
@@ -381,8 +387,9 @@ function Agreements() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
                 {editingagreement ? "Edit Agreement" : "Add Agreement"}
             </h2>
@@ -512,7 +519,7 @@ function Agreements() {
                 {/* Initial Payment Details */}
                 <div>
                 <label className="block text-sm font-medium pb-1">Initial Payment Details 
-                    <button type="button" className="text-green-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 float-end" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={addPaymentRow}><Plus size={15} /></button>
+                    <button type="button" className="text-green-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 float-end cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={addPaymentRow}><Plus size={15} /></button>
                 </label>
                 <div className='clear-both mt-4'>
                 {initialPayments.map((payment, index) => (
@@ -534,7 +541,7 @@ function Agreements() {
                         className="w-32 border border-gray-300 rounded px-2 py-1 text-sm"
                         required
                     />
-                    <button type="button" className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={() => removePaymentRow(index)}><Trash size={15} /></button>
+                    <button type="button" className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={() => removePaymentRow(index)}><Trash size={15} /></button>
                     </div>
                 ))}
                 </div>
@@ -623,16 +630,17 @@ function Agreements() {
                 <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                     Cancel
                 </button>
-                <button
+                {loader && <Loader className="animate-spin h-6 w-6 text-gray-500" />}
+                {!loader && <button
                     type="submit"
-                    className="px-4 py-2 text-sm bg-[#f58737] text-white rounded"
+                    className="px-4 py-2 text-sm bg-[#f58737] text-white rounded cursor-pointer"
                 >
                     {editingagreement ? 'Update' : 'Create'}
-                </button>
+                </button>}
                 </div>
             </form>
             </div>

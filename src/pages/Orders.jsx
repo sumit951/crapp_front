@@ -3,12 +3,14 @@ import axiosConfig, { BASE_URL, FILE_PATH } from '../axiosConfig';
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { Eye, ArrowDown, ArrowBigDownIcon, ArrowBigDown } from "lucide-react";
-
-
+import { Eye, ArrowDown, ArrowBigDownIcon, ArrowBigDown, Loader } from "lucide-react";
 
 
 function Orders() {
+
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const [loader, setLoader] = useState(false);
 
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,6 +79,7 @@ function Orders() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
     e.preventDefault();
     const form = e.target;
     if (editingorder) {
@@ -84,7 +87,7 @@ function Orders() {
       const neworder = {
         id: editingorder?.id || Date.now(),
         status: form.status.value,
-        createdAt: editingorder?.createdAt || new Date().toISOString().split('T')[0],
+        createdAt: editingorder?.createdAt || formattedDate,
       };
 
 
@@ -111,7 +114,7 @@ function Orders() {
             amount: editingorder.amount,
             orderInfo: editingorder.orderInfo,
             status: form.status.value,
-            createdAt: editingorder?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingorder?.createdAt || formattedDate,
           };
 
           //console.log(neworder);
@@ -133,7 +136,7 @@ function Orders() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     } else {
       // const value = {
       //   numberOfPages: form.numberOfPages.value.trim(),
@@ -155,7 +158,7 @@ function Orders() {
       //       amountINR: form.amountINR.value.trim(),
       //       amountUSD: form.amountUSD.value.trim(),
       //       status: 'Active',
-      //       createdAt: editingorder?.createdAt || new Date().toISOString().split('T')[0],
+      //       createdAt: editingorder?.createdAt || formattedDate,
       //     };
 
       //     console.log(neworder);
@@ -177,7 +180,7 @@ function Orders() {
 
       //   console.log(error); // Optional: full error logging for debugging
       // }
-
+      setLoader(false);
     }
 
     handleCloseModal();
@@ -211,9 +214,9 @@ function Orders() {
       cell: row => (
         <div>
 
-        <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'View order'} onClick={() => handleOpenModal(row)}><Eye size={15} /></button>
+        <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View order'} onClick={() => handleOpenModal(row)}><Eye size={15} /></button>
 
-        {/* <button className="text-red-600 hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete order'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button> */}
+        {/* <button className="text-red-600 hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete order'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button> */}
 
         </div>
       ),
@@ -353,20 +356,25 @@ function Orders() {
                 <div className="flex gap-2 pt-2">
                   <div class="clear-both"></div>
                   {editingorder.status !== 'Completed' && (
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm bg-[#f58737] text-white rounded hover:bg-[#d9742d] transition"
-                    >
-                      {editingorder ? 'Update' : 'Create'}
-                    </button>
-                  )}
+                      loader ? (
+                        <Loader className="animate-spin h-6 w-6 text-gray-500" />
+                      ) : (
+                        <button
+                          type="submit"
+                          className="px-4 py-2 text-sm bg-[#f58737] text-white rounded hover:bg-[#d9742d] transition cursor-pointer"
+                        >
+                          {editingorder ? 'Update' : 'Create'}
+                        </button>
+                      )
+                    )}
+
                   
                 </div>
               </form>
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100 transition"
+                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100 transition cursor-pointer"
               >
                 Cancel
               </button>

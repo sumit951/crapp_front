@@ -4,13 +4,17 @@ import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import JoditEditor from 'jodit-react';
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
 
 
 
 
 function Companies() {
   
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const [loader, setLoader] = useState(false);
+
   const [companies, setCompanies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,6 +99,7 @@ function Companies() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
     e.preventDefault();
     const form = e.target;
     //console.log(logo);
@@ -135,7 +140,7 @@ function Companies() {
         website: form.website.value.trim(),
         status: form.status.value,
         logo: filesStr,
-        createdAt: editingcompanies?.createdAt || new Date().toISOString().split('T')[0],
+        createdAt: editingcompanies?.createdAt || formattedDate,
       };
 
       if (editingcompanies.logo != '' && filesStr == '') {
@@ -155,7 +160,7 @@ function Companies() {
             website: form.website.value.trim(),
             status: form.status.value,
             logo: filesStr,
-            createdAt: editingcompanies?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingcompanies?.createdAt || formattedDate,
           };
           if (editingcompanies.logo != '' && filesStr == '') {
             newcompanies.logo = editingcompanies.logo;
@@ -179,6 +184,7 @@ function Companies() {
 
         console.log(error); // Optional: full error logging for debugging
       }
+      setLoader(false);
 
     } else {
       const value = {
@@ -201,9 +207,9 @@ function Companies() {
             website: form.website.value.trim(),
             status: 'Active',
             logo: filesStr,
-            createdAt: editingcompanies?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingcompanies?.createdAt || formattedDate,
           };
-          setCompanies(prev => [...prev, newcompanies]);
+          setCompanies(prev => [newcompanies,...prev]);
           toast.success(response.data.message);
         }
         else {
@@ -220,7 +226,7 @@ function Companies() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     }
     handleCloseModal();
   };
@@ -265,9 +271,9 @@ function Companies() {
       cell: row => (
         <div>
 
-          <button className="text-blue-600 px-1 py-[4px] rounded border border-[#3371fc] hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Company Area'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
-          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Company Area'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
-          <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'View Informartion'} onClick={() => handleViewcompaniesModal(row)}><Eye size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border border-[#3371fc] hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Company Area'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Company Area'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View Informartion'} onClick={() => handleViewcompaniesModal(row)}><Eye size={15} /></button>
         </div>
       ),
     },
@@ -282,7 +288,7 @@ function Companies() {
             onClick={() => handleOpenModal()}
             data-tooltip-id="my-tooltip"
             data-tooltip-content={'Add companies'}
-            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm"
+            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm cursor-pointer"
           >Add Company
             {/* <Plus size={18} /> */}
           </button>
@@ -310,8 +316,9 @@ function Companies() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editingcompanies ? "Edit Company" : "Add Company"}
             </h2>
@@ -401,16 +408,17 @@ function Companies() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button
+                {loader && <Loader className="animate-spin h-6 w-6 text-gray-500" />}
+                {!loader && <button
                   type="submit"
-                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded"
+                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded cursor-pointer"
                 >
                   {editingcompanies ? 'Update' : 'Create'}
-                </button>
+                </button>}
               </div>
             </form>
           </div>
@@ -418,8 +426,9 @@ function Companies() {
       )}
 
       {modalViewcompaniesOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">View Information</h2>
 
             <div className="space-y-4">
@@ -450,7 +459,7 @@ function Companies() {
                 <button
                   type="button"
                   onClick={handleCloseViewcompaniesModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Close
                 </button>

@@ -3,12 +3,16 @@ import axiosConfig, { BASE_URL, FILE_PATH } from '../axiosConfig';
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
 
 
 
 
 function Packages() {
+
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const [loader, setLoader] = useState(false);
 
   const [mainServices, setMainServices] = useState([]);
   const [subServices, setSubServices] = useState([]);
@@ -70,6 +74,7 @@ function Packages() {
   }, []);
 
   const filteredpackages = packages.filter(packageData =>
+    packageData.packageTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
     packageData.subServiceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     packageData.mainServiceName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -138,12 +143,14 @@ function Packages() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
     e.preventDefault();
     const form = e.target;
     if (editingpackage) {
 
       const newpackage = {
         id: editingpackage?.id || Date.now(),
+        packageTitle: form.packageTitle.value,
         mainService: form.mainService.value.trim(),
         subService: form.subService.value.trim(),
         numberOfPages: form.numberOfPages.value.trim(),
@@ -152,7 +159,7 @@ function Packages() {
         amountINR: form.amountINR.value.trim(),
         amountUSD: form.amountUSD.value.trim(),
         status: form.status.value,
-        createdAt: editingpackage?.createdAt || new Date().toISOString().split('T')[0],
+        createdAt: editingpackage?.createdAt || formattedDate,
       };
 
 
@@ -165,6 +172,7 @@ function Packages() {
 
           const newpackage = {
             id: editingpackage.id,
+            packageTitle: editingpackage.packageTitle,
             mainService: editingpackage.mainService,
             subService: editingpackage.subService,
             mainServiceName: editingpackage.mainServiceName,
@@ -175,7 +183,7 @@ function Packages() {
             amountINR: form.amountINR.value.trim(),
             amountUSD: form.amountUSD.value.trim(),
             status: form.status.value,
-            createdAt: editingpackage?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingpackage?.createdAt || formattedDate,
           };
 
           //console.log(newpackage);
@@ -197,9 +205,10 @@ function Packages() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     } else {
       const value = {
+        packageTitle: form.packageTitle.value,
         mainService: form.mainService.value.trim(),
         subService: form.subService.value.trim(),
         numberOfPages: form.numberOfPages.value.trim(),
@@ -215,6 +224,7 @@ function Packages() {
         if (response.status == 200 && response.data.insertId) {
           const newpackage = {
             id: response.data.insertId,
+            packageTitle: form.packageTitle.value.trim(),
             mainService: form.mainService.value.trim(),
             subService: form.subService.value.trim(),
             mainServiceName: ParentTitle,
@@ -225,12 +235,12 @@ function Packages() {
             amountINR: form.amountINR.value.trim(),
             amountUSD: form.amountUSD.value.trim(),
             status: 'Active',
-            createdAt: editingpackage?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingpackage?.createdAt || formattedDate,
           };
 
           console.log(newpackage);
 
-          setpackages(prev => [...prev, newpackage]);
+          setpackages(prev => [newpackage,...prev]);
           toast.success(response.data.message);
         }
         else {
@@ -247,7 +257,7 @@ function Packages() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     }
 
     handleCloseModal();
@@ -256,6 +266,7 @@ function Packages() {
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
+    { name: 'Package Title', selector: row => row.packageTitle, sortable: true },
     { name: 'Main Service', selector: row => row.mainServiceName, sortable: true },
     { name: 'Sub Service', selector: row => row.subServiceName, sortable: true },
     {
@@ -273,10 +284,11 @@ function Packages() {
       cell: row => (
         <div>
 
-          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Package'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Package'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
 
-          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Package'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
-            <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'View Package Informartion'} onClick={() => handleViewpackageModal(row)}><Eye size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Package'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          
+          <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View Package Informartion'} onClick={() => handleViewpackageModal(row)}><Eye size={15} /></button>
 
         </div>
       ),
@@ -292,7 +304,7 @@ function Packages() {
             onClick={() => handleOpenModal()}
             data-tooltip-id="my-tooltip"
             data-tooltip-content={'Add Package'}
-            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm"
+            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm cursor-pointer"
           >Add Package
             {/* <Plus size={20} /> */}
           </button>
@@ -320,13 +332,24 @@ function Packages() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editingpackage ? "Edit Package" : "Add Package"}
             </h2>
             <form onSubmit={handleFormSubmit} className="space-y-4">
 
+              <div>
+                <label className="block text-sm font-medium pb-1">Package Title</label>
+                <input
+                  type="text"
+                  name="packageTitle"
+                  defaultValue={editingpackage?.packageTitle || ''}
+                  required
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium pb-1">Parent Service</label>
                 <select
@@ -466,16 +489,17 @@ function Packages() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button
+                {loader && <Loader className="animate-spin h-6 w-6 text-gray-500" />}
+                {!loader && <button
                   type="submit"
-                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded"
+                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded cursor-pointer"
                 >
                   {editingpackage ? 'Update' : 'Create'}
-                </button>
+                </button>}
               </div>
             </form>
           </div>
@@ -483,8 +507,9 @@ function Packages() {
       )}
 
       {modalViewpackageOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">View Package Information</h2>
 
             <div className="space-y-4">
@@ -534,7 +559,7 @@ function Packages() {
                 <button
                   type="button"
                   onClick={handleCloseViewpackageModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Close
                 </button>

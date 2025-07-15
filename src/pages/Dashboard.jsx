@@ -1,6 +1,9 @@
 import React from 'react'
 
 function Dashboard() {
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  
   return (
     <>
       <div className="p-6 space-y-6">

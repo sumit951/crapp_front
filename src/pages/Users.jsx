@@ -3,12 +3,16 @@ import axiosConfig, { BASE_URL, FILE_PATH } from '../axiosConfig';
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
 
 
 
 
 function Users() {
+
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const [loader, setLoader] = useState(false);
 
   const [users, setusers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,6 +56,7 @@ function Users() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
     e.preventDefault();
     const form = e.target;
     
@@ -69,7 +74,7 @@ function Users() {
         subjectAreaId: editinguser.subjectAreaId,
         subjectArearTitle: editinguser.subjectArearTitle,
         status: form.status.value,
-        createdAt: editinguser?.createdAt || new Date().toISOString().split('T')[0],
+        createdAt: editinguser?.createdAt || formattedDate,
       };
 
      
@@ -89,7 +94,7 @@ function Users() {
             subjectAreaId: editinguser.subjectAreaId,
             subjectArearTitle: editinguser.subjectArearTitle,
             status: form.status.value,
-            createdAt: editinguser?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editinguser?.createdAt || formattedDate,
           };
         
           //console.log(newuser);
@@ -111,7 +116,7 @@ function Users() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     } else {
       const value = {
         userName: form.userName.value,
@@ -129,9 +134,9 @@ function Users() {
             firstName: form.firstName.value,
             lastName: form.lastName.value,
             status: 'Active',
-            createdAt: editinguser?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editinguser?.createdAt || formattedDate,
           };
-          setusers(prev => [...prev, newuser]);
+          setusers(prev => [newuser,...prev]);
           toast.success(response.data.message);
         }
         else {
@@ -148,10 +153,65 @@ function Users() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     }
     handleCloseModal();
   };
+
+  const confirmToast = (message, onConfirm) => {
+      toast.custom((t) => (
+        <div className="bg-white p-4 rounded shadow-md border w-[300px]">
+          <p className="text-sm mb-4">{message}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 text-sm border border-gray-300 rounded cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                onConfirm();
+              }}
+              className="px-3 py-1 text-sm bg-red-500 text-white rounded cursor-pointer"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ));
+    };
+
+  const toggleStatus = (user) => {
+    const newStatus = user.status === "Active" ? "Inactive" : "Active";
+
+    confirmToast(`Change status to ${newStatus}?`, async () => {
+      const updatedUser = { ...user, status: newStatus };
+
+      try {
+        const response = await axiosConfig.put(`/api/user/update/${user.id}`, updatedUser);
+
+        if (response.status === 200) {
+          setusers(prev =>
+            prev.map(u => u.id === user.id ? { ...u, status: newStatus } : u)
+          );
+          toast.success(`Status updated to ${newStatus}`);
+        } else {
+          toast.error('Failed to update status');
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Error updating status');
+        }
+        console.error(error);
+      }
+    });
+  };
+
+
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
@@ -164,19 +224,24 @@ function Users() {
     {
       name: 'Status',
       cell: row => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`}>
+        <button
+          onClick={() => toggleStatus(row)}
+          className={`px-2 py-1 rounded-full text-xs font-medium focus:outline-none cursor-pointer ${
+            row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700 "
+          }`}
+          data-tooltip-id="my-tooltip" data-tooltip-content={`Click to change status`}
+        >
           {row.status}
-        </span>
+        </button>
       ),
     },
+
     { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy hh:mm a'), sortable: true, width: '150px' },
     {
       name: 'Actions',
       cell: row => (
         <div>
-          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
         </div>
       ),
     },
@@ -208,8 +273,9 @@ function Users() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editinguser ? "Edit User" : "Add User"}
             </h2>
@@ -233,16 +299,17 @@ function Users() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button
+                {loader && <Loader className="animate-spin h-6 w-6 text-gray-500" />}
+                {!loader && <button
                   type="submit"
-                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded"
+                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded cursor-pointer"
                 >
                   {editinguser ? 'Update' : 'Create'}
-                </button>
+                </button>}
               </div>
             </form>
           </div>

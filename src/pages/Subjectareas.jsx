@@ -3,12 +3,16 @@ import axiosConfig, { BASE_URL, FILE_PATH, FILE_UPLOAD_URL } from '../axiosConfi
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
 
 
 
 
 function Subjectareas() {
+
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  const [loader, setLoader] = useState(false);
   
   const [subjectareas, setSubjectareas] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,6 +81,7 @@ function Subjectareas() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
     e.preventDefault();
     const form = e.target;
     //console.log(icon);
@@ -114,7 +119,7 @@ function Subjectareas() {
         title: form.title.value.trim(),
         status: form.status.value,
         icon: filesStr,
-        createdAt: editingsubjectarea?.createdAt || new Date().toISOString().split('T')[0],
+        createdAt: editingsubjectarea?.createdAt || formattedDate,
       };
 
       if (editingsubjectarea.icon != '' && filesStr == '') {
@@ -131,7 +136,7 @@ function Subjectareas() {
             title: form.title.value,
             status: form.status.value,
             icon: filesStr,
-            createdAt: editingsubjectarea?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingsubjectarea?.createdAt || formattedDate,
           };
           if (editingsubjectarea.icon != '' && filesStr == '') {
             newsubjectarea.icon = editingsubjectarea.icon;
@@ -155,7 +160,7 @@ function Subjectareas() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);  
     } else {
       const value = {
         title: form.title.value.trim(),
@@ -171,9 +176,9 @@ function Subjectareas() {
             title: form.title.value,
             status: 'Active',
             icon: filesStr,
-            createdAt: editingsubjectarea?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingsubjectarea?.createdAt || formattedDate,
           };
-          setSubjectareas(prev => [...prev, newsubjectarea]);
+          setSubjectareas(prev => [newsubjectarea,...prev]);
           toast.success(response.data.message);
         }
         else {
@@ -190,9 +195,62 @@ function Subjectareas() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     }
     handleCloseModal();
+  };
+
+  const confirmToast = (message, onConfirm) => {
+      toast.custom((t) => (
+        <div className="bg-white p-4 rounded shadow-md border w-[300px]">
+          <p className="text-sm mb-4">{message}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 text-sm border border-gray-300 rounded cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                onConfirm();
+              }}
+              className="px-3 py-1 text-sm bg-red-500 text-white rounded cursor-pointer"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ));
+    };
+
+  const toggleStatus = (subjectarea) => {
+    const newStatus = subjectarea.status === "Active" ? "Inactive" : "Active";
+
+    confirmToast(`Change status to ${newStatus}?`, async () => {
+      const updatedsubjectarea = { ...subjectarea, status: newStatus };
+
+      try {
+        const response = await axiosConfig.put(`/api/subjectarea/updatestatus/${subjectarea.id}`, updatedsubjectarea);
+
+        if (response.status === 200) {
+          setSubjectareas(prev =>
+            prev.map(u => u.id === subjectarea.id ? { ...u, status: newStatus } : u)
+          );
+          toast.success(`Status updated to ${newStatus}`);
+        } else {
+          toast.error('Failed to update status');
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Error updating status');
+        }
+        console.error(error);
+      }
+    });
   };
 
   const columns = [
@@ -212,10 +270,15 @@ function Subjectareas() {
     {
       name: 'Status',
       cell: row => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}>
+        <button
+          onClick={() => toggleStatus(row)}
+          className={`px-2 py-1 rounded-full text-xs font-medium focus:outline-none cursor-pointer ${
+            row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700 "
+          }`}
+          data-tooltip-id="my-tooltip" data-tooltip-content={`Click to change status`}
+        >
           {row.status}
-        </span>
+        </button>
       ),
     },
     // {
@@ -232,8 +295,8 @@ function Subjectareas() {
       cell: row => (
         <div>
 
-          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Subject Area'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
-          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Subject Area'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Subject Area'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Subject Area'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
         </div>
       ),
     },
@@ -248,7 +311,7 @@ function Subjectareas() {
             onClick={() => handleOpenModal()}
             data-tooltip-id="my-tooltip"
             data-tooltip-content={'Add subjectarea'}
-            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm"
+            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm cursor-pointer"
           >Add Subject Area
             {/* <Plus size={18} /> */}
           </button>
@@ -257,7 +320,7 @@ function Subjectareas() {
             placeholder="Search Subject Area..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
           />
 
 
@@ -276,8 +339,9 @@ function Subjectareas() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editingsubjectarea ? "Edit Subject Area" : "Add Subject Area"}
             </h2>
@@ -324,16 +388,17 @@ function Subjectareas() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button
+                {loader && <Loader className="animate-spin h-6 w-6 text-gray-500" />}
+                {!loader && <button
                   type="submit"
-                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded"
+                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded cursor-pointer"
                 >
                   {editingsubjectarea ? 'Update' : 'Create'}
-                </button>
+                </button>}
               </div>
             </form>
           </div>

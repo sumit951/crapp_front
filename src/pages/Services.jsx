@@ -3,7 +3,7 @@ import axiosConfig, { BASE_URL, FILE_PATH, FILE_UPLOAD_URL } from '../axiosConfi
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
 
 
 
@@ -13,7 +13,8 @@ function Services() {
   const d = new Date();
 	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
   //console.log(formattedDate);
-  
+  const [loader, setLoader] = useState(false);
+
   const [services, setServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,6 +102,7 @@ function Services() {
   };
 
   const handleFormSubmit = async (e) => {
+    setLoader(true);
     e.preventDefault();
     const form = e.target;
     //console.log(icon);
@@ -181,7 +183,7 @@ function Services() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);
     } else {
       const value = {
         title: form.title.value.trim(),
@@ -218,13 +220,66 @@ function Services() {
 
         console.log(error); // Optional: full error logging for debugging
       }
-
+      setLoader(false);  
     }
     setMainId('')
     handleCloseModal();
   };
 
   const mainServices = services.filter(s => s.parentId === null);
+
+  const confirmToast = (message, onConfirm) => {
+      toast.custom((t) => (
+        <div className="bg-white p-4 rounded shadow-md border w-[300px]">
+          <p className="text-sm mb-4">{message}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 text-sm border border-gray-300 rounded cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                onConfirm();
+              }}
+              className="px-3 py-1 text-sm bg-red-500 text-white rounded cursor-pointer"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ));
+    };
+
+  const toggleStatus = (service) => {
+    const newStatus = service.status === "Active" ? "Inactive" : "Active";
+
+    confirmToast(`Change status to ${newStatus}?`, async () => {
+      const updatedservice = { ...service, status: newStatus };
+
+      try {
+        const response = await axiosConfig.put(`/api/service/updatestatus/${service.id}`, updatedservice);
+
+        if (response.status === 200) {
+          setServices(prev =>
+            prev.map(u => u.id === service.id ? { ...u, status: newStatus } : u)
+          );
+          toast.success(`Status updated to ${newStatus}`);
+        } else {
+          toast.error('Failed to update status');
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Error updating status');
+        }
+        console.error(error);
+      }
+    });
+  };
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
@@ -243,10 +298,15 @@ function Services() {
     {
       name: 'Status',
       cell: row => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}>
+        <button
+          onClick={() => toggleStatus(row)}
+          className={`px-2 py-1 rounded-full text-xs font-medium focus:outline-none cursor-pointer ${
+            row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700 "
+          }`}
+          data-tooltip-id="my-tooltip" data-tooltip-content={`Click to change status`}
+        >
           {row.status}
-        </span>
+        </button>
       ),
     },
     // {
@@ -263,9 +323,9 @@ function Services() {
       cell: row => (
         <div>
 
-          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Service'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
-          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Service'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
-          {!row.parentId ? (<button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'View Sub Service'} onClick={() => fetchService(row.id, row.title)}><Eye size={15} /></button>) : null}
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Service'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Service'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
+          {!row.parentId ? (<button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View Sub Service'} onClick={() => fetchService(row.id, row.title)}><Eye size={15} /></button>) : null}
         </div>
       ),
     },
@@ -276,11 +336,11 @@ function Services() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold text-[#000]">{ParentId ? (`${ParentTitle} - Sub Services`) : 'Main Services'} </h1>
         <div className="flex gap-3">
-          {ParentId ? (<button class="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm" data-tooltip-id="my-tooltip" data-tooltip-content={'View Main Service'} onClick={() => fetchService()}><ArrowLeft size={20} /></button>) : <button
+          {ParentId ? (<button class="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View Main Service'} onClick={() => fetchService()}><ArrowLeft size={20} /></button>) : <button
             onClick={() => handleOpenModal()}
             data-tooltip-id="my-tooltip"
             data-tooltip-content={'Add Service'}
-            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm"
+            className="bg-[#f58737] text-white px-2 py-1.5 rounded text-sm cursor-pointer"
           >Add Service
             {/* <Plus size={18} /> */}
           </button>}
@@ -308,8 +368,9 @@ function Services() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 bg-opacity-x flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+          {/* Side panel */}
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editingService ? "Edit Service" : "Add Service"}
             </h2>
@@ -377,16 +438,17 @@ function Services() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded"
+                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button
+                {loader && <Loader className="animate-spin h-6 w-6 text-gray-500" />}
+                {!loader && <button
                   type="submit"
-                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded"
+                  className="px-2 py-1 text-sm bg-[#f58737] text-white rounded cursor-pointer"
                 >
                   {editingService ? 'Update' : 'Create'}
-                </button>
+                </button>}
               </div>
             </form>
           </div>
