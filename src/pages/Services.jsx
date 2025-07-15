@@ -12,7 +12,7 @@ function Services() {
 
   const d = new Date();
 	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
-  console.log(formattedDate);
+  //console.log(formattedDate);
   
   const [services, setServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -139,7 +139,7 @@ function Services() {
         status: form.status.value,
         // parentId: form.parentId.value || null,
         icon: filesStr,
-        createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
+        createdAt: editingService?.createdAt || formattedDate,
       };
 
       if (editingService.icon != '' && filesStr == '') {
@@ -157,7 +157,7 @@ function Services() {
             status: form.status.value,
             parentId: ParentId,
             icon: filesStr,
-            createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingService?.createdAt || formattedDate,
           };
           if (editingService.icon != '' && filesStr == '') {
             newService.icon = editingService.icon;
@@ -199,7 +199,7 @@ function Services() {
             status: 'Active',
             parentId: form.parentId.value || null,
             icon: filesStr,
-            createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
+            createdAt: editingService?.createdAt || formattedDate,
           };
           setServices(prev => [newService, ...prev]);
           toast.success(response.data.message);
