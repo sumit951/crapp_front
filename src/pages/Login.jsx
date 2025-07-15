@@ -50,7 +50,7 @@ const Login = () => {
         console.log(error.message);
         toast.error('Invalid Login Credentials');
     }
-
+    setLoader(false);
     // const u = {
     //     name: "Test",
     //     email: email,
