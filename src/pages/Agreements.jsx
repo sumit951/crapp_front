@@ -52,6 +52,16 @@ function Agreements() {
   const [ParentId, setParentId] = useState('');
   const [ParentTitle, setParentTitle] = useState('');
   const [SubTitle, setSubTitle] = useState('');
+
+  const [agreements, setAgreements] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingagreement, setEditingagreement] = useState(null);
+
+  const [initialPayments, setInitialPayments] = useState(
+    editingagreement?.initialPaymentDetails || [{ name: '', amount: '' }]
+  );
+  const [totalPaymentAmount, setTotalAmount] = useState(0);
   
   const fetchService = async (parentId, title) => {
 
@@ -84,10 +94,7 @@ function Agreements() {
     fetchService();
   }, []);
 
-  const [agreements, setAgreements] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingagreement, setEditingagreement] = useState(null);
+  
 
   const fetchagreement = async () => {
     try {
@@ -162,11 +169,21 @@ function Agreements() {
 
         setSubServices(subservice);
         setInitialPayments(parsedInitialPayments);
+        setCompanyAddress(agreementData.companyAddress);
+        setServiceProvision(agreementData.serviceProvision);
+        setTermsAndCondition(agreementData.termsAndCondition);
+        setParentTitle(agreementData.mainServiceName)
+        setSubTitle(agreementData.subServiceName)
     }
     else
     {
         setSubServices([]);
         setInitialPayments([{ name: '', amount: '' }]);
+        setCompanyAddress('');
+        setServiceProvision('');
+        setTermsAndCondition('');
+        setParentTitle('')
+        setSubTitle('')
     }
     setEditingagreement(agreementData);
     setModalOpen(true);
@@ -177,10 +194,7 @@ function Agreements() {
     setModalOpen(false);
   };
 
-  const [initialPayments, setInitialPayments] = useState(
-    editingagreement?.initialPaymentDetails || [{ name: '', amount: '' }]
-  );
-  const [totalPaymentAmount, setTotalAmount] = useState(0);
+  
 
   useEffect(() => {
 
@@ -318,12 +332,12 @@ function Agreements() {
     //     </span>
     //   ),
     // },
-    { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy HH:mm '), sortable: true },
+    { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy hh:mm a'), sortable: true },
     {
       name: 'Actions',
       cell: row => (
         <div>
-          {/* <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Agreement'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button> */}
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Agreement'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
           <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Agreement'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
         </div>
       ),

@@ -171,7 +171,7 @@ function Users() {
         </span>
       ),
     },
-    { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy HH:mm '), sortable: true, width: '150px' },
+    { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy hh:mm a'), sortable: true, width: '150px' },
     {
       name: 'Actions',
       cell: row => (

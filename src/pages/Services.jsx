@@ -253,7 +253,7 @@ function Services() {
     //     </span>
     //   ),
     // },
-    { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy HH:mm '), sortable: true },
+    { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy hh:mm a'), sortable: true },
     {
       name: 'Actions',
       cell: row => (
