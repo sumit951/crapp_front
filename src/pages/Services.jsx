@@ -10,6 +10,10 @@ import { ArrowLeft, Eye, Pencil, Trash, Plus } from "lucide-react";
 
 function Services() {
 
+  const d = new Date();
+	const formattedDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+  console.log(formattedDate);
+  
   const [services, setServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -188,7 +192,7 @@ function Services() {
         const response = await axiosConfig.post('/api/service/add', value)
         //console.log(response);
 
-        if (response.status == 200 && response.data.insertId) {
+        if (response.status == 200 && response.data.insertId && form.parentId.value=='') {
           const newService = {
             id: response.data.insertId,
             title: form.title.value,
@@ -197,7 +201,7 @@ function Services() {
             icon: filesStr,
             createdAt: editingService?.createdAt || new Date().toISOString().split('T')[0],
           };
-          setServices(prev => [...prev, newService]);
+          setServices(prev => [newService, ...prev]);
           toast.success(response.data.message);
         }
         else {
