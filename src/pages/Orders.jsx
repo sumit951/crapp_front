@@ -365,6 +365,34 @@ function Orders() {
         </span>
       ),
     },
+    {
+      name: 'NDA Status',
+      cell: row => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+        row.ndaStatus === "Pending"
+        ? "bg-red-100 text-red-700"           // danger
+        : row.ndaStatus === "Approved"
+        ? "bg-green-100 text-green-700"       // success
+        : "bg-gray-100 text-gray-700"         // default/fallback
+        }`}>
+          {row.ndaStatus}
+        </span>
+      ),
+    },
+    {
+      name: 'Payment Status',
+      cell: row => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+        row.paymentStatus === "Pending"
+        ? "bg-red-100 text-red-700"           // danger
+        : row.paymentStatus === "Paid"
+        ? "bg-green-100 text-green-700"       // success
+        : "bg-gray-100 text-gray-700"         // default/fallback
+        }`}>
+          {row.paymentStatus}
+        </span>
+      ),
+    },
     { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy hh:mm a'), sortable: true },
     {
       name: 'Actions',
@@ -417,8 +445,8 @@ function Orders() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-6xl">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50" onClick={handleCloseModal}>
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-semibold mb-6 border-b pb-3">
               {editingorder ? "View Order Information" : "Add Order"}
             </h2>
@@ -553,9 +581,9 @@ function Orders() {
 
       {/* NDA Modal */}
       {modalOpenNDA && (
-        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end" onClick={handleCloseModalNDA}>
           {/* Side panel */}
-          <div className="h-full w-full sm:w-[82%] bg-white shadow-lg p-6 overflow-y-auto">
+          <div className="h-full w-full sm:w-[82%] bg-white shadow-lg p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4">
                 Add New  NDA
             </h2>
@@ -743,8 +771,8 @@ function Orders() {
 
       {/* Preview NDA Modal */}
       {modalOpenPreview && (
-        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="relative h-full w-full bg-white rounded-lg shadow-lg p-6 max-w-6xl overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 overflow-y-auto" onClick={(e) => setModalOpenPreview(false)}>
+          <div className="relative h-full w-full bg-white rounded-lg shadow-lg p-6 max-w-6xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="relative mb-4">
               {/* Close Button - floats outside top-right */}
               <button

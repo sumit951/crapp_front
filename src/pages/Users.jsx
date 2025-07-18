@@ -162,7 +162,7 @@ function Users() {
 
   const confirmToast = (message, onConfirm) => {
       toast.custom((t) => (
-        <div className="bg-white p-4 rounded shadow-md border w-[300px] bg-gray-500/50 z-50">
+        <div className="bg-white p-4 rounded shadow-md border w-[300px]">
           <p className="text-sm mb-4">{message}</p>
           <div className="flex justify-end gap-2">
             <button
@@ -226,6 +226,18 @@ function Users() {
     { name: 'Email', selector: row => row.email, sortable: true, width: '280px'},
     { name: 'Mobile', selector: row => row.mobile, sortable: true},
     { name: 'Subject Area', selector: row => row.subjectArearTitle, sortable: true},
+    { name: 'Total Order',
+      cell: row => (
+        <Link
+          to={`/orders/${row.id}`}
+          className="text-blue-600 px-2 py-[1px] rounded border hover:underline text-sm cursor-pointer flex"
+          data-tooltip-id="my-tooltip"
+          data-tooltip-content={'View all orders'}
+        >
+          {row.orderCount}
+        </Link>
+      ),
+    },
     {
       name: 'Status',
       cell: row => (
@@ -247,14 +259,6 @@ function Users() {
       cell: row => (
         <div>
           <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm ml-3 cursor-pointer float-end" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
-          <Link
-          to={`/orders/${row.id}`}
-          className="text-blue-600 px-2 py-[1px] rounded border hover:underline text-sm cursor-pointer flex"
-          data-tooltip-id="my-tooltip"
-          data-tooltip-content={'View all orders'}
-        >
-          {row.orderCount}
-        </Link>
         </div>
       ),
     },
@@ -286,9 +290,9 @@ function Users() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end" onClick={handleCloseModal}>
           {/* Side panel */}
-          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4">
               {editinguser ? "Edit User" : "Add User"}
             </h2>

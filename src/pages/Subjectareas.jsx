@@ -410,9 +410,9 @@ function Subjectareas() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end">
+        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end" onClick={handleCloseModal}>
           {/* Side panel */}
-          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto">
+          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-semibold mb-4">
               {editingsubjectarea ? "Edit Subject Area" : "Add Subject Area"}
             </h2>
