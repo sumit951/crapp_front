@@ -152,6 +152,14 @@ function Services() {
         newService.icon = editingService.icon;
       }
 
+      if (editingService.description != '') {
+        newService.description = form.description?.value.trim() || '';
+      }
+      else
+      {
+        newService.description = null;
+      }
+
       try {
         const response = await axiosConfig.put(`/api/service/update/${editingService.id}`, newService)
         //console.log(response);
@@ -167,6 +175,14 @@ function Services() {
           };
           if (editingService.icon != '' && filesStr == '') {
             newService.icon = editingService.icon;
+          }
+          
+          if (editingService.description != '') {
+            newService.description = form.description?.value.trim() || '';
+          }
+          else
+          {
+            newService.description = null;
           }
           //console.log(newService);
 
@@ -194,6 +210,13 @@ function Services() {
         parentId: form.parentId.value.trim() || null,
         icon: filesStr
       };
+      if (form.parentId.value) {
+        value.description = form.description?.value.trim() || '';
+      }
+      else
+      {
+        value.description = null;
+      }
       try {
         const response = await axiosConfig.post('/api/service/add', value)
         //console.log(response);
@@ -207,6 +230,12 @@ function Services() {
             icon: filesStr,
             createdAt: editingService?.createdAt || formattedDate,
           };
+          
+          if (form.parentId.value) {
+            newService.description = form.description?.value.trim() || '';
+          } else {
+            newService.description = null;
+          }
           setServices(prev => [newService, ...prev]);
           toast.success(response.data.message);
         }
@@ -513,6 +542,20 @@ function Services() {
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 />
               </div>
+
+              {MainId ?
+                <div>
+                  <label className="block text-sm font-medium pb-1">Description</label>
+                  <textarea
+                    name="description"
+                    defaultValue={editingService?.description || ''}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    rows={4}
+                    placeholder="Enter service description..."
+                  ></textarea>
+                </div>
+                : null
+              }
 
 
               <div className="flex justify-end gap-3 pt-4">
