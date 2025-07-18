@@ -315,6 +315,62 @@ function Agreements() {
   handleCloseModal();
 };
 
+const confirmToast = (message, onConfirm) => {
+  toast.custom((t) => (
+    <div className="bg-white p-4 rounded shadow-md border w-[300px]">
+      <p className="text-sm mb-4">{message}</p>
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="px-3 py-1 text-sm border border-gray-300 rounded cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => {
+            toast.dismiss(t.id);
+            onConfirm();
+          }}
+          className="px-3 py-1 text-sm bg-red-500 text-white rounded cursor-pointer"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  ),
+  {
+        position: "top-right",
+  });
+};
+
+const toggleStatus = (agreement) => {
+  const newStatus = agreement.status === "Active" ? "Inactive" : "Active";
+
+  confirmToast(`Change status to ${newStatus}?`, async () => {
+    const updatedpackage = { ...agreement, status: newStatus };
+
+    try {
+      const response = await axiosConfig.put(`/api/agreement/updatestatus/${agreement.id}`, updatedpackage);
+
+      if (response.status === 200) {
+        setAgreements(prev =>
+          prev.map(u => u.id === agreement.id ? { ...u, status: newStatus } : u)
+        );
+        toast.success(`Status updated to ${newStatus}`);
+      } else {
+        toast.error('Failed to update status');
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Error updating status');
+      }
+      console.error(error);
+    }
+  });
+};
+
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
@@ -324,10 +380,15 @@ function Agreements() {
     {
       name: 'Status',
       cell: row => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}>
+        <button
+          onClick={() => toggleStatus(row)}
+          className={`px-2 py-1 rounded-full text-xs font-medium focus:outline-none cursor-pointer ${
+            row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700 "
+          }`}
+          data-tooltip-id="my-tooltip" data-tooltip-content={`Click to change status`}
+        >
           {row.status}
-        </span>
+        </button>
       ),
     },
     // {

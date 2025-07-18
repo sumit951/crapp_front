@@ -3,7 +3,7 @@ import axiosConfig, { BASE_URL, FILE_PATH, FILE_UPLOAD_URL } from '../axiosConfi
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader, ArrowRight } from "lucide-react";
 
 
 
@@ -24,6 +24,10 @@ function Services() {
   const [ParentId, setParentId] = useState('');
   const [ParentTitle, setParentTitle] = useState('');
   const [MainId, setMainId] = useState('');
+
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editedTitle, setEditedTitle] = useState('');
+
 
 
   const fetchService = async (parentId, title) => {
@@ -79,7 +83,7 @@ function Services() {
           toast.error('Something went wrong');
         }
 
-        console.log(error); // Optional: full error logging for debugging
+        //console.log(error); // Optional: full error logging for debugging
       }
 
     }
@@ -164,7 +168,7 @@ function Services() {
           if (editingService.icon != '' && filesStr == '') {
             newService.icon = editingService.icon;
           }
-          console.log(newService);
+          //console.log(newService);
 
           setServices(prev => prev.map(s => s.id === editingService.id ? newService : s));
           toast.success(response.data.message);
@@ -181,7 +185,7 @@ function Services() {
           toast.error('Something went wrong');
         }
 
-        console.log(error); // Optional: full error logging for debugging
+        //console.log(error); // Optional: full error logging for debugging
       }
       setLoader(false);
     } else {
@@ -218,7 +222,7 @@ function Services() {
           toast.error('Something went wrong');
         }
 
-        console.log(error); // Optional: full error logging for debugging
+        //console.log(error); // Optional: full error logging for debugging
       }
       setLoader(false);  
     }
@@ -250,7 +254,10 @@ function Services() {
             </button>
           </div>
         </div>
-      ));
+      ),
+      {
+            position: "top-right",
+      });
     };
 
   const toggleStatus = (service) => {
@@ -281,20 +288,94 @@ function Services() {
     });
   };
 
+  const handleInlineTitleUpdate = async (row) => {
+    if (editedTitle.trim() === '' || editedTitle === row.title) {
+      setEditingRowId(null);
+      return;
+    }
+
+    const updatedService = {
+      ...row,
+      title: editedTitle.trim(),
+    };
+
+    try {
+      const response = await axiosConfig.put(`/api/service/updatetitle/${row.id}`, updatedService);
+
+      if (response.status === 200) {
+        setServices(prev =>
+          prev.map(s => (s.id === row.id ? { ...s, title: editedTitle.trim() } : s))
+        );
+        toast.success('Title updated successfully');
+        }
+      else
+      {
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      // Handle known server response
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        // Fallback error
+        toast.error('Something went wrong');
+      }
+
+      //console.log(error); // Optional: full error logging for debugging
+    }
+
+    setEditingRowId(null);
+  };
+
+
+
+
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
     {
-      name: 'Service Name', selector: row => row.title, sortable: true,
+      name: 'Service Name',
+      selector: row => row.title,
+      sortable: true,
       cell: row => (
         <div className="flex items-center">
-          {/* Check if there is an image */}
-          {row.icon ? (
-            <img src={`${FILE_PATH}/uploads/${row.icon}`} alt={row.title} className="w-10 rounded-full mr-2" />
-          ) : null}
-          <span>{row.title}</span>
+          {row.icon && (
+            <img
+              src={`${FILE_PATH}/uploads/${row.icon}`}
+              alt={row.title}
+              className="w-10 rounded-full mr-2"
+            />
+          )}
+          {editingRowId === row.id ? (
+            <>
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleInlineTitleUpdate(row);
+                if (e.key === 'Escape') setEditingRowId(null);
+              }}
+              className="border border-gray-300 rounded px-2 py-1 text-sm w-full"
+              autoFocus
+            /> <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm ml-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Update Service Title'} onClick={() => handleInlineTitleUpdate(row)}><ArrowRight size={15} /></button>
+            </>
+          ) : (
+            <>
+            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+              {row.title}
+            </span>
+            <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm ml-2 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Service Title'} onClick={() => {
+              setEditingRowId(row.id);
+              setEditedTitle(row.title);
+            }}>
+            <Pencil size={10} />
+            </button>
+            </>
+          )}
         </div>
       )
     },
+
     {
       name: 'Status',
       cell: row => (

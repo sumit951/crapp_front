@@ -16,7 +16,7 @@ function Packages() {
 
   const [mainServices, setMainServices] = useState([]);
   const [subServices, setSubServices] = useState([]);
-  const [packages, setpackages] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalViewpackageOpen, setViewpackageModalOpen] = useState(false);
@@ -63,7 +63,7 @@ function Packages() {
       const response = await axiosConfig.get('/api/package/all');
 
       if (response.status === 200) {
-        setpackages(response.data.data);
+        setPackages(response.data.data);
       }
     } catch (error) {
       toast.error(error.message);
@@ -88,7 +88,7 @@ function Packages() {
         //console.log(response);
 
         if (response.status == 200) {
-          setpackages(prev => prev.filter(packageData => packageData.id !== id));
+          setPackages(prev => prev.filter(packageData => packageData.id !== id));
           toast.success(response.data.message);
         }
         else {
@@ -188,7 +188,7 @@ function Packages() {
 
           //console.log(newpackage);
 
-          setpackages(prev => prev.map(s => s.id === editingpackage.id ? newpackage : s));
+          setPackages(prev => prev.map(s => s.id === editingpackage.id ? newpackage : s));
           toast.success(response.data.message);
         }
         else {
@@ -240,7 +240,7 @@ function Packages() {
 
           console.log(newpackage);
 
-          setpackages(prev => [newpackage,...prev]);
+          setPackages(prev => [newpackage,...prev]);
           toast.success(response.data.message);
         }
         else {
@@ -263,6 +263,61 @@ function Packages() {
     handleCloseModal();
   };
 
+  const confirmToast = (message, onConfirm) => {
+    toast.custom((t) => (
+      <div className="bg-white p-4 rounded shadow-md border w-[300px]">
+        <p className="text-sm mb-4">{message}</p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 text-sm border border-gray-300 rounded cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              onConfirm();
+            }}
+            className="px-3 py-1 text-sm bg-red-500 text-white rounded cursor-pointer"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    ),
+    {
+          position: "top-right",
+    });
+  };
+
+  const toggleStatus = (packagedata) => {
+    const newStatus = packagedata.status === "Active" ? "Inactive" : "Active";
+
+    confirmToast(`Change status to ${newStatus}?`, async () => {
+      const updatedpackage = { ...packagedata, status: newStatus };
+
+      try {
+        const response = await axiosConfig.put(`/api/package/updatestatus/${packagedata.id}`, updatedpackage);
+
+        if (response.status === 200) {
+          setPackages(prev =>
+            prev.map(u => u.id === packagedata.id ? { ...u, status: newStatus } : u)
+          );
+          toast.success(`Status updated to ${newStatus}`);
+        } else {
+          toast.error('Failed to update status');
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Error updating status');
+        }
+        console.error(error);
+      }
+    });
+  };
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
@@ -272,10 +327,15 @@ function Packages() {
     {
       name: 'Status',
       cell: row => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}>
+        <button
+          onClick={() => toggleStatus(row)}
+          className={`px-2 py-1 rounded-full text-xs font-medium focus:outline-none cursor-pointer ${
+            row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700 "
+          }`}
+          data-tooltip-id="my-tooltip" data-tooltip-content={`Click to change status`}
+        >
           {row.status}
-        </span>
+        </button>
       ),
     },
     { name: 'Created At', selector: row => format(row.createdAt, 'dd MMMM yyyy hh:mm a'), sortable: true },

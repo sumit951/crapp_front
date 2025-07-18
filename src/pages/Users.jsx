@@ -1,5 +1,7 @@
 import React, { useState,useEffect } from 'react';
+import { Link } from "react-router-dom";
 import axiosConfig, { BASE_URL, FILE_PATH } from '../axiosConfig';
+
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
@@ -160,7 +162,7 @@ function Users() {
 
   const confirmToast = (message, onConfirm) => {
       toast.custom((t) => (
-        <div className="bg-white p-4 rounded shadow-md border w-[300px]">
+        <div className="bg-white p-4 rounded shadow-md border w-[300px] bg-gray-500/50 z-50">
           <p className="text-sm mb-4">{message}</p>
           <div className="flex justify-end gap-2">
             <button
@@ -180,7 +182,10 @@ function Users() {
             </button>
           </div>
         </div>
-      ));
+      ),
+      {
+            position: "top-right",
+      });
     };
 
   const toggleStatus = (user) => {
@@ -241,7 +246,15 @@ function Users() {
       name: 'Actions',
       cell: row => (
         <div>
-          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm ml-3 cursor-pointer float-end" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit User'} onClick={() => handleOpenModal(row)}><Pencil size={15} /></button>
+          <Link
+          to={`/orders/${row.id}`}
+          className="text-blue-600 px-2 py-[1px] rounded border hover:underline text-sm cursor-pointer flex"
+          data-tooltip-id="my-tooltip"
+          data-tooltip-content={'View all orders'}
+        >
+          {row.orderCount}
+        </Link>
         </div>
       ),
     },

@@ -3,7 +3,7 @@ import axiosConfig, { BASE_URL, FILE_PATH, FILE_UPLOAD_URL } from '../axiosConfi
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
-import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Trash, Loader, ArrowRight } from "lucide-react";
 
 
 
@@ -19,6 +19,9 @@ function Subjectareas() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingsubjectarea, setEditingsubjectarea] = useState(null);
   const [icon, setIcon] = useState(null);
+
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editedTitle, setEditedTitle] = useState('');
 
   const fetchsubjectarea = async () => {
     try {
@@ -222,7 +225,10 @@ function Subjectareas() {
             </button>
           </div>
         </div>
-      ));
+      ),
+      {
+            position: "top-right",
+      });
     };
 
   const toggleStatus = (subjectarea) => {
@@ -253,6 +259,45 @@ function Subjectareas() {
     });
   };
 
+  const handleInlineTitleUpdate = async (row) => {
+    if (editedTitle.trim() === '' || editedTitle === row.title) {
+      setEditingRowId(null);
+      return;
+    }
+
+    const updatedService = {
+      ...row,
+      title: editedTitle.trim(),
+    };
+
+    try {
+      const response = await axiosConfig.put(`/api/subjectarea/updatetitle/${row.id}`, updatedService);
+
+      if (response.status === 200) {
+        setSubjectareas(prev =>
+          prev.map(s => (s.id === row.id ? { ...s, title: editedTitle.trim() } : s))
+        );
+        toast.success('Title updated successfully');
+        }
+      else
+      {
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      // Handle known server response
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        // Fallback error
+        toast.error('Something went wrong');
+      }
+
+      //console.log(error); // Optional: full error logging for debugging
+    }
+
+    setEditingRowId(null);
+  };
+
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
     {
@@ -263,7 +308,33 @@ function Subjectareas() {
           {row.icon ? (
             <img src={`${FILE_PATH}/uploads/${row.icon}`} alt={row.title} className="w-10 rounded-full mr-2" />
           ) : null}
-          <span>{row.title}</span>
+          {editingRowId === row.id ? (
+            <>
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleInlineTitleUpdate(row);
+                if (e.key === 'Escape') setEditingRowId(null);
+              }}
+              className="border border-gray-300 rounded px-2 py-1 text-sm w-full"
+              autoFocus
+            /> <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm ml-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Update Service Title'} onClick={() => handleInlineTitleUpdate(row)}><ArrowRight size={15} /></button>
+            </>
+          ) : (
+            <>
+            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+              {row.title}
+            </span>
+            <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm ml-2 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Edit Service Title'} onClick={() => {
+              setEditingRowId(row.id);
+              setEditedTitle(row.title);
+            }}>
+            <Pencil size={10} />
+            </button>
+            </>
+          )}
         </div>
       )
     },

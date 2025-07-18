@@ -33,6 +33,7 @@ export default function AppRouter() {
             <Route path="/users" element={<Users />} />
             <Route path="/subjectareas" element={<Subjectareas />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/:userId" element={<Orders />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/agreements" element={<Agreements />} />
           </Route>
