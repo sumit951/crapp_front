@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axiosConfig, { BASE_URL, FILE_PATH } from '../axiosConfig';
+import axiosConfig, { BASE_URL, FILE_PATH, PDF_UPLOAD_URL } from '../axiosConfig';
 import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import JoditEditor from 'jodit-react';
+import html2pdf from "html2pdf.js";
 import { format } from 'date-fns';
 import { Eye, ArrowDown, ArrowBigDownIcon, ArrowBigDown, Loader, ArrowRight, ArrowLeft, SignatureIcon, View, Cross, X } from "lucide-react";
 import logo from '../assets/logo.png';
@@ -21,6 +22,7 @@ function Orders() {
   
   const [postalAddress, setPostalAddress] = useState('');
   const editor = useRef(null);
+  const pdfRef = useRef();
   
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -343,6 +345,98 @@ function Orders() {
     handleCloseModal();
   };
 
+  function stripOKLCHColors(rootElement = document.body) {
+    const elements = rootElement.querySelectorAll('*');
+    elements.forEach(el => {
+      const computed = getComputedStyle(el);
+      if (computed.color.includes('oklch')) el.style.color = '#000';
+      if (computed.backgroundColor.includes('oklch')) el.style.backgroundColor = '#fff';
+      if (computed.borderColor.includes('oklch')) el.style.borderColor = '#ccc';
+    });
+  }
+
+  function waitForImagesToLoad(container) {
+    const images = container.querySelectorAll("img");
+    const promises = Array.from(images).map(img =>
+      new Promise(resolve => {
+        if (img.complete) resolve();
+        else img.onload = img.onerror = resolve;
+      })
+    );
+    return Promise.all(promises);
+  }
+
+  const generateAndUploadPDF = async () => {
+  try {
+    const element = pdfRef.current;
+    await waitForImagesToLoad(element);
+    stripOKLCHColors(element);
+    // Optional: hide close button if present
+    const closeButton = element.querySelector('button[aria-label="close"]') 
+                        || element.querySelector('button.absolute');
+    if (closeButton) closeButton.style.display = 'none';
+
+    // Define PDF options
+    const opt = {
+      margin:       0,
+      filename:     `NDA-${previewData?.orderNo || "doc"}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    const blob = await html2pdf().from(element).set(opt).outputPdf('blob');
+
+    const file = new File([blob], `NDA-${previewData?.orderNo || "doc"}.pdf`, {
+      type: "application/pdf",
+    });
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosConfig.post(`${PDF_UPLOAD_URL}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    
+    if (response.status >= 200 && response.status < 300) {
+      console.log(response.data.filename);
+
+      const updatedPdf = { ndaPDF: response.data.filename };
+
+      try {
+        const response = await axiosConfig.put(`/api/order/updatepdf/${previewData.ndaId}`, updatedPdf);
+
+        if (response.status === 200) {
+          setOrders(prev =>
+            prev.map(u => u.id === previewData.id ? { ...u, ndaPDF: updatedPdf.ndaPDF } : u)
+          );
+          toast.success(`PDF Saved`);
+        } else {
+          toast.error('Failed to generate PDF');
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('Error generate PDF');
+        }
+        console.error(error);
+      }
+    } else {
+      toast.error(response.data.message);
+    }
+  } catch (error) {
+    console.error("PDF generation/upload failed:", error);
+    toast.error("Something went wrong."+error);
+  }
+};
+
+
+
+
+
 
   const columns = [
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
@@ -401,7 +495,28 @@ function Orders() {
 
         <button className="text-blue-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View order'} onClick={() => handleOpenModal(row)}><Eye size={15} /></button>
 
-         {!row.ndaId ? (<button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Create NDA'} onClick={() => handleOpenModalNDA(row)}><SignatureIcon size={15} /></button>) : (<button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Preview NDA'} onClick={() => handleFullPreview(row)}><View size={15} /></button>)}
+         {!row.ndaId ? (
+            <button
+              className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer"
+              data-tooltip-id="my-tooltip"
+              data-tooltip-content="Create NDA"
+              onClick={() => handleOpenModalNDA(row)}
+            >
+              <SignatureIcon size={15} />
+            </button>
+          ) : (
+            !row.ndaPDF && (
+              <button
+                className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer"
+                data-tooltip-id="my-tooltip"
+                data-tooltip-content="Preview NDA"
+                onClick={() => handleFullPreview(row)}
+              >
+                <View size={15} />
+              </button>
+            )
+          )}
+
         
 
         {/* <button className="text-red-600 hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete order'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button> */}
@@ -503,14 +618,29 @@ function Orders() {
                   <div className="font-medium">Uploaded File</div>
                   <div>
                     <a
-                      href={`${FILE_PATH}/orders/${editingorder.uploadFile}`}
+                      href={`${FILE_PATH}orders/${editingorder.uploadFile}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition"
                     >
-                      View <ArrowBigDown size={18} className="ml-1" />
+                      Download <ArrowBigDown size={18} className="ml-1" />
                     </a>
                   </div>
+                  {editingorder.ndaPDF && 
+                  <>
+                  <div className="font-medium">View NDA</div>
+                  <div>
+                    <a
+                      href={`${FILE_PATH}ndapdf/${editingorder.ndaPDF}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition"
+                    >
+                      Download <ArrowBigDown size={18} className="ml-1" />
+                    </a>
+                  </div>
+                  </>
+                  }
                 </div>
               </div>
 
@@ -771,8 +901,9 @@ function Orders() {
 
       {/* Preview NDA Modal */}
       {modalOpenPreview && (
+        <>
         <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 overflow-y-auto" onClick={(e) => setModalOpenPreview(false)}>
-          <div className="relative h-full w-full bg-white rounded-lg shadow-lg p-6 max-w-6xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="relative h-full w-full bg-white rounded-lg shadow-lg p-6 max-w-6xl overflow-y-auto" onClick={(e) => e.stopPropagation()} ref={pdfRef}>
             <div className="relative mb-4">
               {/* Close Button - floats outside top-right */}
               <button
@@ -786,7 +917,7 @@ function Orders() {
               <div className="border border-gray-300 rounded p-4">
                 <div className="flex justify-between items-start">
                   <div className="logo">
-                    <img src={logo} alt="logo" />
+                    <img src={logo} alt="logo" crossOrigin="anonymous" />
                   </div>
                   <div className="text-xs font-semibold text-red-600">
                     Reference ID : NDA/{previewData?.orderNo || "N/A"}
@@ -834,25 +965,19 @@ function Orders() {
                 The Client and the Company, each separately, is a Party (“a Party”) to this NDA and collectively are herein referred to as the Parties (the “Parties”).
               </p>
 
-              <ol className="list-decimal ml-5 space-y-2">
-                <li>
-                  The effective date of this Agreement is the date on which the Parties have entered into an agreement for the Services either orally or in writing or evidenced through payments.
-                </li>
-                <li>
-                  The Company acknowledges and agrees that in connection with the Services, the Client may disclose to the Company information, including, but not necessarily limited to:
-                  <ul className="list-disc ml-6 mt-1">
-                    <li>
-                      Methods, ideas, business secrets, processes, formulae, compositions, systems, techniques, inventions, machines, computer programs and research projects, and raw data.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  The Company agrees to keep confidential all the information described in Clause 2 herein and shall not disclose said information to any person or persons, real or juridical, other than as may be required to enforce a Party’s rights in the resolution of any dispute between the Parties.
-                </li>
-                <li>
-                  After completion of the Services, the Company shall continue to keep confidential all the information described in Clause 2 herein. The Company may keep its obligations of confidentiality as set forth in the NDA by returning all Client materials to the Client or by destruction of such materials after a six (6) month period following the completion of the Services.
-                </li>
-              </ol>
+              <div className="space-y-4 text-justify">
+                <p><strong>1.</strong> The effective date of this Agreement is the date on which the Parties have entered into an agreement for the Services either orally or in writing or evidenced through payments.</p>
+                
+                <p><strong>2.</strong> The Company acknowledges and agrees that in connection with the Services, the Client may disclose to the Company information, including, but not necessarily limited to:</p>
+                
+                <div className="ml-6">
+                  <p>• Methods, ideas, business secrets, processes, formulae, compositions, systems, techniques, inventions, machines, computer programs and research projects, and raw data.</p>
+                </div>
+                
+                <p><strong>3.</strong> The Company agrees to keep confidential all the information described in Clause 2 herein and shall not disclose said information to any person or persons, real or juridical, other than as may be required to enforce a Party’s rights in the resolution of any dispute between the Parties.</p>
+                
+                <p><strong>4.</strong> After completion of the Services, the Company shall continue to keep confidential all the information described in Clause 2 herein. The Company may keep its obligations of confidentiality as set forth in the NDA by returning all Client materials to the Client or by destruction of such materials after a six (6) month period following the completion of the Services.</p>
+              </div>
             </div>
 
             {/* Signed By Section */}
@@ -877,26 +1002,34 @@ function Orders() {
                   <p className="text-sm font-semibold text-end mb-3">
                     Signed this :{" "}
                     <span className="text-red-600">
-                      {new Date().toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </span>
+                    {previewData.ndaSigatureCreatedAt 
+                      ? previewData.ndaSigatureCreatedAt 
+                      : new Date().toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                    }
+                  </span>
                   </p>
+                  {previewData.ndaSignature ? (
+                    <img src={`${FILE_PATH}ndaSignature/${previewData.ndaSignature}`} className="w-30 float-end" alt="signature" crossOrigin="anonymous" />
+                  ) : (
+                    <>
+                      {/* Signature Buttons */}
+                      <div className="flex gap-2 justify-between mb-3">
+                        <button className="text-black">
+                          Draw Your Signature
+                        </button>
+                        <button className="text-red-600 text-xs border border-red-500 px-2 py-1 rounded hover:bg-red-100">
+                          Clear
+                        </button>
+                      </div>
 
-                  {/* Signature Buttons */}
-                  <div className="flex gap-2 justify-between mb-3">
-                    <button className="text-black">
-                      Draw Your Signature
-                    </button>
-                    <button className="text-red-600 text-xs border border-red-500 px-2 py-1 rounded hover:bg-red-100">
-                      Clear
-                    </button>
-                  </div>
-
-                  {/* Signature Box */}
-                  <div className="border border-gray-300 h-28 mb-4 bg-gray-50"></div>
+                      {/* Signature Box */}
+                      <div className="border border-gray-300 h-28 mb-4 bg-gray-50"></div>
+                    </>
+                  )}
 
                   {/* Footer Buttons */}
                   {!previewData.ndaId && <div className="flex flex-col md:flex-row justify-end gap-4 mt-2">
@@ -921,9 +1054,30 @@ function Orders() {
               <p className="text-center text-xs text-gray-600 mt-6">
                 All Rights Reserved, Chanakya, (c) Copyright 2010 - 2024.
               </p>
+
+              
+                {!previewData.ndaPDF && previewData.ndaSignature ? (
+                  <div className="text-center text-xs text-gray-600 mt-6">
+                    <div className="mt-4 flex justify-end gap-4">
+                      <button
+                        onClick={generateAndUploadPDF}
+                        className="bg-blue-600 text-white px-4 py-1 text-sm rounded hover:bg-blue-700"
+                      >
+                        Generate PDF
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  null
+                )}
             </div>
+            
           </div>
+
+          
         </div>
+        
+        </>
       )}
 
 
