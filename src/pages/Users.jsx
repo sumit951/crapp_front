@@ -43,7 +43,7 @@ function Users() {
 
   const filteredusers = users.filter(user =>
     user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.subjectArearTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    user.subjectAreaTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
 
@@ -74,7 +74,7 @@ function Users() {
         email: editinguser.email,
         mobile: editinguser.mobile,
         subjectAreaId: editinguser.subjectAreaId,
-        subjectArearTitle: editinguser.subjectArearTitle,
+        subjectAreaTitle: editinguser.subjectAreaTitle,
         status: form.status.value,
         createdAt: editinguser?.createdAt || formattedDate,
       };
@@ -94,7 +94,7 @@ function Users() {
             email: editinguser.email,
             mobile: editinguser.mobile,
             subjectAreaId: editinguser.subjectAreaId,
-            subjectArearTitle: editinguser.subjectArearTitle,
+            subjectAreaTitle: editinguser.subjectAreaTitle,
             status: form.status.value,
             createdAt: editinguser?.createdAt || formattedDate,
           };
@@ -225,7 +225,7 @@ function Users() {
     { name: 'Username', selector: row => row.userName, sortable: true},
     { name: 'Email', selector: row => row.email, sortable: true, width: '280px'},
     { name: 'Mobile', selector: row => row.mobile, sortable: true},
-    { name: 'Subject Area', selector: row => row.subjectArearTitle, sortable: true},
+    { name: 'Subject Area', selector: row => row.subjectAreaTitle, sortable: true},
     { name: 'Total Order',
       cell: row => (
         <Link
