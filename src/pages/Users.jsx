@@ -68,7 +68,6 @@ function Users() {
 
       const newuser = {
         id: editinguser?.id || Date.now(),
-        userName: editinguser.userName,
         firstName: editinguser.firstName,
         lastName: editinguser.lastName,
         email: editinguser.email,
@@ -88,7 +87,6 @@ function Users() {
         if (response.status == 200) {
           const newuser = {
             id: editinguser.id,
-            userName: editinguser.userName,
             firstName: editinguser.firstName,
             lastName: editinguser.lastName,
             email: editinguser.email,
@@ -121,7 +119,6 @@ function Users() {
       setLoader(false);
     } else {
       const value = {
-        userName: form.userName.value,
         firstName: form.firstName.value,
         lastName: form.lastName.value,
       };
@@ -132,7 +129,6 @@ function Users() {
         if (response.status == 200 && response.data.insertId) {
           const newuser = {
             id: response.data.insertId,
-            userName: form.userName.value,
             firstName: form.firstName.value,
             lastName: form.lastName.value,
             status: 'Active',
@@ -222,7 +218,6 @@ function Users() {
     // { name: '#', selector: (row, index) => index + 1, width: '60px' },
     { name: 'First Name', selector: row => row.firstName, sortable: true},
     { name: 'Last Name', selector: row => row.lastName, sortable: true},
-    { name: 'Username', selector: row => row.userName, sortable: true},
     { name: 'Email', selector: row => row.email, sortable: true, width: '280px'},
     { name: 'Mobile', selector: row => row.mobile, sortable: true},
     { name: 'Subject Area', selector: row => row.subjectAreaTitle, sortable: true},
