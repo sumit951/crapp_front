@@ -14,6 +14,7 @@ import Subjectareas from "../pages/Subjectareas";
 import Orders from "../pages/Orders";
 import Companies from "../pages/Companies";
 import Agreements from "../pages/Agreements";
+import Camps from "../pages/Camps";
 
 
 
@@ -36,9 +37,9 @@ export default function AppRouter() {
             <Route path="/orders/:userId" element={<Orders />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/agreements" element={<Agreements />} />
+            <Route path="/camps" element={<Camps />} />
           </Route>
-        </Route>
-        
+        </Route>        
       </Routes>
     </Router>
   );
