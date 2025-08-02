@@ -518,20 +518,17 @@ function Services() {
                 </div>
               }
 
-              {MainId ?
-                <div>
-                  <label className="block text-sm font-medium pb-1">Service Icon</label>
-                  <input
-                    type="file"
-                    name="icon"
-                    onChange={(e) => setIcon(e.target.files[0])}
-                    accept="image/*"
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  />
-                </div>
-                : null
-              }
-
+              <div>
+                <label className="block text-sm font-medium pb-1">Service Icon</label>
+                <input
+                  type="file"
+                  name="icon"
+                  onChange={(e) => setIcon(e.target.files[0])}
+                  accept="image/*"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium pb-1">Service Name</label>
                 <input
