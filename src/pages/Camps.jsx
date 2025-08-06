@@ -4,6 +4,7 @@ import DataTable from 'react-data-table-component';
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
 import { ArrowLeft, Eye, Pencil, Trash, Loader } from "lucide-react";
+import Campbooking from "../pages/Campbooking";
 
 import Select from 'react-select';
 import Tags from "@yaireo/tagify/dist/react.tagify";
@@ -24,7 +25,9 @@ function Camps() {
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalViewcampOpen, setViewcampModalOpen] = useState(false);
+  const [modalViewcampOpenbooking, setViewcampModalOpenbooking] = useState(false);
   const [editingcamp, setEditingcamp] = useState(null);
+  const [editingcampbooking, setEditingcampbooking] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(editingcamp?.campLocation || '');
   const [timeSlots, setTimeSlots] = useState([]);
   const [timeSlotsDaytwo, setTimeSlotsDaytwo] = useState([]);
@@ -219,6 +222,22 @@ function Camps() {
 };
 
 
+
+const handleOpenModalbooking = (campbookingData = null) => {
+  if (campbookingData) {
+    setEditingcampbooking(campbookingData);
+  }
+  handleCloseViewcampModal();
+  console.log(campbookingData);
+  setViewcampModalOpenbooking(true);
+};
+
+const handleCloseModalbooking = () => {
+  setEditingcampbooking(null);
+  setViewcampModalOpenbooking(false);
+};
+
+
 const handleEditSlotSts = () => {
   setEditslotSts(true);
 };
@@ -320,6 +339,50 @@ const handleEditSlotSts = () => {
 };
 
 
+const handleFormSubmitbooking = async (e) => {
+    e.preventDefault();
+    setLoader(true);
+
+    const form = e.target;
+
+    // Extract values
+    const comments = form.comments.value.trim();
+    const status = form.status?.value;
+
+    const payload = {
+      comments,
+      status
+    };
+
+    try {
+      if (editingcampbooking) {
+        // Update request
+        const response = await axiosConfig.put(`/api/camp/updatecampbooking/${editingcampbooking.id}`, {
+          ...payload,
+          name: editingcampbooking.name,
+          email: editingcampbooking.email,
+          id: editingcampbooking.id,
+          campDate: editingcampbooking.campDate,
+          campLocation: editingcampbooking.campLocation,
+          campRegistrationId: editingcampbooking.campRegistrationId
+        });
+
+        if (response.status === 200) {
+          toast.success(response.data.message);
+        } else {
+          toast.error(response.data.message || 'Update failed.');
+        }
+      }
+    } catch (error) {
+      const errMsg = error.response?.data?.message || 'Something went wrong.';
+      toast.error(errMsg);
+      console.error(error);
+    }
+
+    setLoader(false);
+    handleCloseModalbooking();
+  };
+
   const confirmToast = (message, onConfirm) => {
     toast.custom((t) => (
       <div className="bg-white p-4 rounded shadow-md border w-[300px]">
@@ -404,6 +467,12 @@ const handleEditSlotSts = () => {
       width: '230px'
     },
     {
+      name: 'Bookings',
+      cell: row => (
+        <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View Camp Booking Informartion'} onClick={() => handleViewcampModal(row)}> {row.bookingsCount}</button>
+      ),
+    },
+    {
       name: 'Status',
       cell: row => (
         <button
@@ -427,7 +496,7 @@ const handleEditSlotSts = () => {
 
           <button className="text-red-600 px-1 py-[4px] rounded border hover:underline text-sm mr-3 cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'Delete Camp'} onClick={() => handleDelete(row.id)}><Trash size={15} /></button>
           
-          {/* <button className="text-orange-600 px-1 py-[4px] rounded border hover:underline text-sm cursor-pointer" data-tooltip-id="my-tooltip" data-tooltip-content={'View Camp Informartion'} onClick={() => handleViewcampModal(row)}><Eye size={15} /></button> */}
+          
 
         </div>
       ),
@@ -826,59 +895,156 @@ const handleEditSlotSts = () => {
         </div>
       )}
 
-      {/* {modalViewcampOpen && (
-        <div className="fixed inset-0 bg-gray-500/50 z-50 flex justify-end" onClick={handleCloseViewcampModal}>
-         
-          <div className="h-full w-full sm:w-[400px] bg-white shadow-lg p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold mb-4">View camp Information</h2>
+      {modalViewcampOpenbooking && (
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50" onClick={handleCloseModalbooking}>
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-semibold mb-6 border-b pb-3">
+              {editingcampbooking ? "View Camp Booking Information" : ""}
+            </h2>
 
-            <div className="space-y-4">
+            {/* Equal Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Left Section: Order Details */}
+              <div className="p-4 border rounded-md bg-gray-50 space-y-4">
+                <h3 className="text-md font-semibold mb-2">Booking Details</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  
+                  <div className="font-medium">Camp Registration Id</div>
+                  <div>{editingcampbooking.campRegistrationId}</div>
 
-              <div className="flex justify-between">
-                <label className="text-sm font-medium pb-1">No of Pages</label>
-                <span>{editingcamp.numberOfPages}</span>
+                  <div className="font-medium">Name</div>
+                  <div>{editingcampbooking.name}</div>
+
+                  <div className="font-medium">Email</div>
+                  <div>{editingcampbooking.email}</div>
+
+                  <div className="font-medium">Mobile</div>
+                  <div>{editingcampbooking.mobile}</div>
+
+                  <div className="font-medium">Camp Location</div>
+                  <div>{editingcampbooking.campLocation}</div>
+
+                  <div className="font-medium">Camp Address</div>
+                  <div>{editingcampbooking.campAddress}</div>
+
+                  <div className="font-medium">Subject Area</div>
+                  <div>{editingcampbooking.subjectAreaTitle}</div>
+
+                  <div className="font-medium">Academic Level</div>
+                  <div>{editingcampbooking.academicLevel}</div>
+
+                  <div className="font-medium">Current Status</div>
+                  <div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      editingcampbooking.status === "Not Attended"
+                        ? "bg-red-100 text-red-700"
+                        : editingcampbooking.status === "Attended"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}>
+                      {editingcampbooking.status}
+                    </span>
+                  </div>
+                </div>
               </div>
+              {/* Right Section: Order Package Summary */}
+              <div className="p-4 border rounded-md bg-gray-50 space-y-4">
+                <h3 className="text-md font-semibold mb-2">Update Booking Status</h3>
+                <form onSubmit={handleFormSubmitbooking} className="space-y-4 w-full md:flex md:items-end md:gap-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="block text-sm font-medium pb-1">Camp Date</div>
+                  <div>{format(editingcampbooking.campDate, 'dd MMMM yyyy hh:mm a')}</div>
 
-              <div className="flex justify-between">
-                <label className="text-sm font-medium pb-1">Expected Delivery {`Day(s) : ${editingcamp.expectedDeliveryDate}`}</label>
-                <span>
-                  {editingcamp.expectedDeliveryDate
-                    ? new Date(Date.now() + editingcamp.expectedDeliveryDate * 24 * 60 * 60 * 1000).toDateString()
-                    : "N/A"}
+                  <div className="block text-sm font-medium pb-1">Camp Time Slot</div>
+                  <div>{editingcampbooking.campTimeSlot}</div>
 
+                  <div className="block text-sm font-medium pb-1">Message</div>
+                  <div>{editingcampbooking.message}</div>
+                  
+                  {editingcampbooking?.status == null ? (
+                  <>
+                  <div>
+                    <label className="block text-sm font-medium pb-1">Comments</label>
+                      <textarea
+                        className="form-control w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        rows="3"
+                        name="comments"
+                        id="comments"
+                        defaultValue={editingcampbooking?.comments || ''}
+                        required
+                      />
+                  </div>
 
-                </span>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium pb-1">Status</label>
+                    <select
+                      name="status"
+                      defaultValue={editingcampbooking?.status || ''}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                      required
+                    >
+                      <option value="">Select</option>
+                      <option value="Attended">Attended</option>
+                      <option value="Not Attended">Not Attended</option>
+                    </select>
+                  </div>
+                  <div>
+                    {loader ? (
+                      <Loader className="animate-spin h-6 w-6 text-gray-500" />
+                    ) : (
+                      <button
+                        type="submit"
+                        className="px-2 py-1 text-sm bg-[#f58737] text-white rounded cursor-pointer"
+                      >
+                        {editingcampbooking ? 'Update' : 'Create'}
+                      </button>
+                    )}
+                  </div>
+                  </>
+                  ) : (
+                  <>
+                  <div className="block text-sm font-medium pb-1">Status</div>
+                  <div>{editingcampbooking.status}</div>
+                  <div className="block text-sm font-medium pb-1">Comments</div>
+                  <div>{editingcampbooking.comments}</div>
+                  </>
+                  )}
+                </div>
+              </form>
 
-
-              <div className="flex justify-between">
-                <label className="text-sm font-medium pb-1">Revisions</label>
-                <span>{editingcamp.revisions}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <label className="text-sm font-medium pb-1">Amount (₹)</label>
-                <span>{editingcamp.amountINR}</span>
-              </div>
-              <div className="flex justify-between">
-                <label className="text-sm font-medium pb-1">Amount ($)</label>
-                <span>{editingcamp.amountUSD}</span>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseViewcampModal}
-                  className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer"
-                >
-                  Close
-                </button>
               </div>
             </div>
+
+
           </div>
         </div>
 
-      )} */}
+      )}
+
+
+      {modalViewcampOpen && (
+        <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center z-50 overflow-y-auto" onClick={handleCloseViewcampModal}>
+         
+          <div className="relative h-full w-full bg-white rounded-lg shadow-lg p-6 max-w-7xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold mb-4">View Camp Booking Information</h2>
+            <button
+              type="button"
+              onClick={handleCloseViewcampModal}
+              className="px-2 py-1 text-sm border border-gray-300 rounded cursor-pointer float-end"
+              >
+              X
+              </button>
+            <div className="space-y-4">
+              {editingcamp && editingcamp.id && (
+              <Campbooking campId={editingcamp.id} handleOpenModalbooking={handleOpenModalbooking} />
+              )}
+            </div>
+            
+          </div>
+        </div>
+
+      )}
     </div>
   );
 }
